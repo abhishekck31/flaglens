@@ -41,7 +41,7 @@ export function FlagsmithProvider({ children }: { children: React.ReactNode }) {
         // No flag has this name, so getValue returns null and the button silently shows the
         // default text. FlagLens underlines it and offers "Did you mean checkout_cta_variant?".
         // Keep the typo in git; fix it only live during the demo.
-        ctaLabel: toCtaLabel(flagsmith.getValue("checkout_cta_variant")),
+        ctaLabel: toCtaLabel(flagsmith.getValue("checkout_cta_varient")),
         expressCheckoutEnabled: flagsmith.hasFeature("enable_express_checkout"),
       });
     };
