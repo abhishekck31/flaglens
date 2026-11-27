@@ -29,13 +29,13 @@ Prerequisites: Docker Desktop (running) and Node.js 20+.
    ```
    Open http://localhost:3000.
 
-## FlagLens vs the official code-references scanner
+## How FlagLens complements the official code-references scanner
 
-Flagsmith ships an official scanner, the [`Flagsmith/ci`](https://github.com/Flagsmith/ci) GitHub Action. FlagLens sends data to the same Flagsmith API, but works differently:
+Flagsmith ships an official scanner, the [`Flagsmith/ci`](https://github.com/Flagsmith/ci) GitHub Action. It keeps the dashboard's Code References up to date from CI on every push to `main`. FlagLens works alongside it, in the editor before you commit:
 
-- **Where it runs:** the Action runs in GitHub CI after you push to `main`. FlagLens runs in your editor whenever you ask, before you commit.
-- **What it matches:** the Action only matches calls shaped like `feature…("name")` or `flag…("name")`, so it misses `flagsmith.getValue("name")`. FlagLens matches any quoted string equal to a real flag name from your Flagsmith project.
-- **Which way the data goes:** the Action only uploads, and skips the upload when it finds nothing, so it never clears stale references. FlagLens also reads the data back into the editor and always uploads its full latest scan, which can be empty.
+- **CI coverage vs. the editor before commit:** use the Action to keep references current for the whole team. Use FlagLens to see flag state and reference counts while you write the code.
+- **Reading references:** FlagLens shows each flag's reference count (from the same API the Action writes to) in the VS Code sidebar.
+- **Pushing references (planned):** a FlagLens command to scan the workspace and upload references. It would match any quoted string equal to a real flag name, so it also catches calls like `getValue("…")` and `useFlags([…])`, and it would upload empty scans so removed references clear. Those two gaps in the Action are written up in [`docs/upstream-issue.md`](docs/upstream-issue.md).
 
 ## License
 

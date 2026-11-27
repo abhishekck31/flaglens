@@ -7,7 +7,10 @@ Hard deadline: Nov 29 2026, 8:00 PM IST. Target submit: 6:00 PM IST.
 - `docker-compose.yml`: official Flagsmith compose file, pinned to the 2.295.2 image. Dashboard + API on http://localhost:8000.
 - `scripts/seed.mjs`: creates demo org/project/environments/flags. Reads `flagsmith.env` (copy from `flagsmith.env.example`).
 - `apps/demo-store`: small Next.js app that uses flags via the official SDK. It is the codebase FlagLens scans in the demo. Keep it frozen.
-- `packages/flaglens-vscode`: the extension (to be added).
+- `packages/flaglens-vscode`: the extension. Files without a `vscode` import (`flagsmithClient.ts`, `format.ts`,
+  `toggle.ts`, `flagScanner.ts`) hold the logic and are unit-tested; the rest is VS Code wiring.
+  `npm run typecheck`, `npm test`, `npm run build`; `npm run smoke` is a read-only live check.
+- `docs/upstream-issue.md`: draft issue for Flagsmith/ci. Not filed.
 - Branch `devbar-prototype`: archived earlier prototype. Do not merge.
 
 ## Verified API facts (Flagsmith 2.295.2, checked 2026-11-27)

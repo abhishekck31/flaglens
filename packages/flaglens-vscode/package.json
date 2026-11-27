@@ -16,6 +16,9 @@
   "categories": [
     "Other"
   ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.cjs",
   "contributes": {
     "commands": [
@@ -34,6 +37,12 @@
         "title": "Refresh",
         "category": "FlagLens",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "flaglens.toggleFlag",
+        "title": "Toggle flag",
+        "category": "FlagLens",
+        "icon": "$(arrow-swap)"
       }
     ],
     "configuration": {
@@ -43,6 +52,11 @@
           "type": "string",
           "default": "http://localhost:8000/api/v1/",
           "description": "Base URL of your Flagsmith API, e.g. http://localhost:8000/api/v1/"
+        },
+        "flaglens.projectId": {
+          "type": "number",
+          "default": 0,
+          "description": "Flagsmith project whose flags are shown in CodeLens. 0 means the first project."
         }
       }
     },
@@ -76,6 +90,19 @@
           "command": "flaglens.refresh",
           "when": "view == flaglens.flags",
           "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "flaglens.toggleFlag",
+          "when": "view == flaglens.flags && viewItem == flag",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "flaglens.toggleFlag",
+          "when": "false"
         }
       ]
     }

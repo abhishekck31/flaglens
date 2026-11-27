@@ -115,6 +115,26 @@ export class FlagsmithClient {
     return this.getAll<Feature>(`/projects/${projectId}/features/?environment=${environmentId}`);
   }
 
+  /** GET /api/v1/environments/<env api key>/featurestates/<id>/ : the flag's current state. */
+  getFeatureState(environmentApiKey: string, featureStateId: number): Promise<{ id: number; enabled: boolean }> {
+    return this.request(`${this.baseUrl}/environments/${environmentApiKey}/featurestates/${featureStateId}/`);
+  }
+
+  /**
+   * PATCH /api/v1/environments/<env api key>/featurestates/<id>/ with {"enabled": ...}.
+   * Only valid for environments WITHOUT v2 feature versioning (see CLAUDE.md).
+   */
+  setFeatureStateEnabled(
+    environmentApiKey: string,
+    featureStateId: number,
+    enabled: boolean,
+  ): Promise<{ enabled: boolean }> {
+    return this.request(`${this.baseUrl}/environments/${environmentApiKey}/featurestates/${featureStateId}/`, {
+      method: "PATCH",
+      body: { enabled },
+    });
+  }
+
   /**
    * Fetches a list endpoint and follows `next` links until every page is read.
    * Some endpoints return a bare array instead of a page; both are handled.
@@ -145,11 +165,17 @@ export class FlagsmithClient {
     return `${base.origin}${next.pathname}${next.search}`;
   }
 
-  private async request<T>(url: string): Promise<T> {
+  /** Sends one request. GET by default; pass `method` and a JSON `body` for writes. */
+  private async request<T>(url: string, options: { method?: "GET" | "PATCH"; body?: unknown } = {}): Promise<T> {
+    const headers: Record<string, string> = { Authorization: `Api-Key ${this.apiKey}`, Accept: "application/json" };
+    if (options.body !== undefined) headers["Content-Type"] = "application/json";
+
     let res: Response;
     try {
       res = await this.fetchFn(url, {
-        headers: { Authorization: `Api-Key ${this.apiKey}`, Accept: "application/json" },
+        method: options.method ?? "GET",
+        headers,
+        body: options.body === undefined ? undefined : JSON.stringify(options.body),
       });
     } catch (err) {
       // fetch only rejects on network failure (server down, DNS, refused connection).
