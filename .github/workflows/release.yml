@@ -1,0 +1,40 @@
+# On a tag like v0.1.0: check, package the .vsix and attach it to a GitHub Release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # needed to create the release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/flaglens-vscode
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/flaglens-vscode/package-lock.json
+      - run: npm ci
+      - name: Tag must match package.json version
+        run: |
+          expected="v$(node -p 'require("./package.json").version')"
+          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $expected"; exit 1
+          fi
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run package # runs the build first (vscode:prepublish)
+      - name: Create GitHub Release with the .vsix
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" flaglens-*.vsix
+          --title "FlagLens $GITHUB_REF_NAME"
+          --notes-file CHANGELOG.md

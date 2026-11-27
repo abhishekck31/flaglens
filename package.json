@@ -9,7 +9,8 @@
     "build:demo": "npm --prefix apps/demo-store run build",
     "build": "npm --prefix packages/flaglens-vscode run build",
     "test": "npm --prefix packages/flaglens-vscode test",
-    "typecheck": "npm --prefix packages/flaglens-vscode run typecheck"
+    "typecheck": "npm --prefix packages/flaglens-vscode run typecheck",
+    "package": "npm --prefix packages/flaglens-vscode run package"
   },
   "description": "FlagLens: a VS Code extension for self-hosted Flagsmith"
 }

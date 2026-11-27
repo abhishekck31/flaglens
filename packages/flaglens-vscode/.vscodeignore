@@ -1,7 +1,8 @@
-# Only ship the bundled extension, not sources or tests.
+# Ship only the bundled extension plus its README, CHANGELOG, LICENSE and icons.
 src/**
 test/**
+scripts/**
 node_modules/**
 tsconfig.json
 **/*.map
-scripts/**
+*.vsix

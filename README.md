@@ -2,32 +2,55 @@
 
 A VS Code extension for **self-hosted Flagsmith**: see your feature flags next to the code that uses them, toggle them without leaving the editor, and push code references back into Flagsmith.
 
-> Work in progress for the Toggle Wars hackathon (Track 03: Build on Open Source Flagsmith). The extension lands in `packages/flaglens-vscode`.
+Built for the Toggle Wars hackathon (Track 03: Build on Open Source Flagsmith). The extension lives in [`packages/flaglens-vscode`](packages/flaglens-vscode).
 
-## Run self-hosted Flagsmith and the demo app
+## Quickstart
 
-Prerequisites: Docker Desktop (running) and Node.js 20+.
+Prerequisites: Docker Desktop (running), Node.js 20+, git, and VS Code 1.90+ with the `code` command on your PATH.
 
-1. **Start Flagsmith** (Postgres, API, task processor; image pinned to `2.295.2`):
+1. **Clone and start self-hosted Flagsmith** (Postgres, API, task processor; image pinned to `2.295.2`):
    ```bash
+   git clone https://github.com/abhishekck31/flaglens.git
+   cd flaglens
    npm run up
    ```
-   Open http://localhost:8000 and create your admin account.
+   Wait for `Flagsmith ready at http://localhost:8000`.
 
-2. **Create an Organisation API key** in the dashboard (Organisation Settings → API Keys), then:
+2. **Create your admin user and an Organisation API key.** Open http://localhost:8000, sign up, and create an organisation when asked.
+   Then go to Organisation Settings → API Keys → Create API Key, and copy the key.
+
+3. **Seed demo data:**
    ```bash
-   cp flagsmith.env.example flagsmith.env   # paste the key into flagsmith.env
+   cp flagsmith.env.example flagsmith.env   # then paste the key into flagsmith.env
    npm run seed
    ```
    This creates a `Toggle Wars` project with `Development` and `Production` environments and two flags
    (`checkout_cta_variant`, `enable_express_checkout`), and writes `apps/demo-store/.env.local`.
 
-3. **Run the demo store** (the codebase FlagLens inspects):
+4. **Install the extension.** Download `flaglens-0.1.0.vsix` from the [latest release](https://github.com/abhishekck31/flaglens/releases/latest), then:
+   ```bash
+   code --install-extension flaglens-0.1.0.vsix
+   ```
+   (Or in VS Code: Extensions view → `…` menu → Install from VSIX…)
+
+5. **Connect.** Open the cloned folder in VS Code (`code .`), click the **FlagLens** icon in the activity bar, then **Connect to Flagsmith**.
+   Keep the default URL `http://localhost:8000/api/v1/` and paste the same Organisation API key.
+   The Flags panel shows `Toggle Wars` → `Development` / `Production` with both flags.
+
+6. **Optional: run the demo store,** the app whose flags FlagLens shows:
    ```bash
    npm --prefix apps/demo-store install
    npm run demo
    ```
-   Open http://localhost:3000.
+   Open http://localhost:3000. Open `apps/demo-store/src/components/FlagsmithProvider.tsx` to see CodeLens, hover cards
+   and the deliberate `checkout_cta_varient` typo warning.
+
+### Build the extension yourself
+
+```bash
+npm --prefix packages/flaglens-vscode install
+npm run package   # writes packages/flaglens-vscode/flaglens-<version>.vsix
+```
 
 ## How FlagLens complements the official code-references scanner
 

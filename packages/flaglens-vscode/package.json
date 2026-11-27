@@ -5,20 +5,35 @@
   "version": "0.1.0",
   "publisher": "togglewars",
   "license": "MIT",
-  "type": "module",
+  "icon": "media/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/abhishekck31/flaglens"
+    "url": "https://github.com/abhishekck31/flaglens",
+    "directory": "packages/flaglens-vscode"
   },
+  "homepage": "https://github.com/abhishekck31/flaglens#readme",
+  "bugs": {
+    "url": "https://github.com/abhishekck31/flaglens/issues"
+  },
+  "keywords": [
+    "flagsmith",
+    "feature flags",
+    "feature toggles",
+    "self-hosted",
+    "codelens",
+    "code references"
+  ],
+  "categories": [
+    "Other",
+    "Linters"
+  ],
   "engines": {
     "vscode": "^1.90.0"
   },
-  "categories": [
-    "Other"
-  ],
   "activationEvents": [
     "onStartupFinished"
   ],
+  "type": "module",
   "main": "./dist/extension.cjs",
   "contributes": {
     "commands": [
@@ -175,11 +190,14 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.ts",
     "smoke": "node scripts/smoke.ts",
-    "push": "node scripts/push.ts"
+    "push": "node scripts/push.ts",
+    "vscode:prepublish": "npm run build",
+    "package": "vsce package --no-dependencies"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "~1.90.0",
+    "@vscode/vsce": "^4.1.1",
     "esbuild": "^0.28.2",
     "typescript": "~5.9.3"
   }

@@ -1,0 +1,29 @@
+# Type-check, test and build the extension on every pull request and push to main.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/flaglens-vscode
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          # Node 24 runs the .ts tests directly (built-in type stripping); vsce needs >= 22.
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/flaglens-vscode/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
