@@ -69,6 +69,12 @@
         "title": "Push code references to Flagsmith",
         "category": "FlagLens",
         "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "flaglens.scanHealth",
+        "title": "Rescan flag health",
+        "category": "FlagLens",
+        "icon": "$(refresh)"
       }
     ],
     "configuration": {
@@ -143,6 +149,10 @@
         {
           "id": "flaglens.flags",
           "name": "Flags"
+        },
+        {
+          "id": "flaglens.health",
+          "name": "Flag Health"
         }
       ]
     },
@@ -150,6 +160,11 @@
       {
         "view": "flaglens.flags",
         "contents": "Connect to your self-hosted Flagsmith to see your flags here.\n[Connect to Flagsmith](command:flaglens.connect)",
+        "when": "!flaglens.connected"
+      },
+      {
+        "view": "flaglens.health",
+        "contents": "Connect to Flagsmith and open a folder in a git repository to see unused, missing and fully rolled-out flags.\n[Connect to Flagsmith](command:flaglens.connect)",
         "when": "!flaglens.connected"
       }
     ],
@@ -163,6 +178,11 @@
         {
           "command": "flaglens.refresh",
           "when": "view == flaglens.flags",
+          "group": "navigation"
+        },
+        {
+          "command": "flaglens.scanHealth",
+          "when": "view == flaglens.health",
           "group": "navigation"
         }
       ],

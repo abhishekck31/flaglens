@@ -1,0 +1,11 @@
+{
+  // This repo holds both the demo app and FlagLens itself. FlagLens's own source has example
+  // flag calls in comments, so keep it out of Flag Health and code-reference scans.
+  "flaglens.exclude": [
+    "**/node_modules/**", "**/dist/**", "**/out/**", "**/.next/**",
+    "**/test/**", "**/tests/**", "**/__tests__/**", "**/*.test.*", "**/*.spec.*",
+    "**/*.md", "**/*.mdx",
+    "stack/**", "scripts/**", "**/seed*",
+    "packages/flaglens-vscode/**"
+  ]
+}

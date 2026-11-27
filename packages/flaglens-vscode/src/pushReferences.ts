@@ -1,11 +1,10 @@
 // "Push code references": scan the git repo for known flag names and upload the result.
 // No `vscode` import: the VS Code command and the CLI script (scripts/push.ts) both use this.
 
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { buildCodeReferences, looksLikeText, shouldScanPath, summarize, type PushSummary } from "./codeReferences.ts";
+import { buildCodeReferences, summarize, type PushSummary } from "./codeReferences.ts";
 import type { FlagsmithClient } from "./flagsmithClient.ts";
-import { getRepoInfo, listTrackedFiles, type RepoInfo } from "./git.ts";
+import { getRepoInfo, type RepoInfo } from "./git.ts";
+import { readTrackedFiles } from "./repoFiles.ts";
 
 export type PushOutcome =
   | { kind: "pushed"; repo: RepoInfo; summary: PushSummary }
@@ -43,19 +42,9 @@ export async function scanAndPush(options: PushOptions): Promise<PushOutcome> {
   if (repo.hasUncommittedChanges) risks.push(`You have uncommitted changes, so some line numbers may not match commit ${short}.`);
   if (risks.length > 0 && !(await options.confirmRisk(risks.join(" ")))) return { kind: "cancelled" };
 
-  // The latest scan replaces the previous one for this repository, so scan ALL of it,
-  // even if the editor only has a sub-folder open; otherwise references elsewhere would vanish.
-  const files: Array<{ path: string; text: string }> = [];
-  for (const relPath of await listTrackedFiles(repo.root)) {
-    if (!shouldScanPath(relPath, options.excludeGlobs)) continue;
-    let content: Buffer;
-    try {
-      content = await readFile(path.join(repo.root, relPath));
-    } catch {
-      continue; // tracked but deleted from disk
-    }
-    if (looksLikeText(content)) files.push({ path: relPath, text: content.toString("utf8") });
-  }
+  // The latest scan replaces the previous one for this repository, so scan ALL of it (from the
+  // root), even if the editor only has a sub-folder open; otherwise references elsewhere would vanish.
+  const { files } = await readTrackedFiles(repo.root, options.excludeGlobs);
 
   const codeReferences = buildCodeReferences(files, options.flagNames);
   // Sent even when empty, so references to deleted code are cleared.

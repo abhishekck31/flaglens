@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Flag Health view: Unused, Missing in Flagsmith (click to jump to the line), and Fully rolled out.
+
 ## 0.1.0 (2026-11-27)
 
 First release.

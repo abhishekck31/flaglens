@@ -6,6 +6,7 @@ import { FlagHoverProvider } from "./flagHover.ts";
 import { UnknownFlagDiagnostics, UnknownFlagQuickFixes } from "./unknownFlags.ts";
 import { DEFAULT_EXCLUDE_GLOBS } from "./codeReferences.ts";
 import { formatSummary, scanAndPush } from "./pushReferences.ts";
+import { FlagHealthProvider } from "./flagHealthView.ts";
 
 /** "FlagLens" panel in the Output view: holds the full push report. */
 const output = vscode.window.createOutputChannel("FlagLens");
@@ -235,9 +236,14 @@ export function activate(context: vscode.ExtensionContext): void {
   const treeView = vscode.window.createTreeView("flaglens.flags", { treeDataProvider: tree });
   const store = new FlagStore(() => getClient(context));
   const views: Views = { tree, treeView, store };
+  // Flag Health rescans on every store reload, so toggle/push/refresh/create all update it.
+  const health = new FlagHealthProvider(store);
 
   context.subscriptions.push(
     treeView,
+    health,
+    vscode.window.createTreeView("flaglens.health", { treeDataProvider: health }),
+    vscode.commands.registerCommand("flaglens.scanHealth", () => health.scan()),
     vscode.languages.registerCodeLensProvider({ scheme: "file" }, new FlagCodeLensProvider(store)),
     vscode.languages.registerHoverProvider({ scheme: "file" }, new FlagHoverProvider(store)),
     new UnknownFlagDiagnostics(store),

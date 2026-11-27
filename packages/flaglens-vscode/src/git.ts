@@ -54,8 +54,16 @@ export async function getRepoInfo(cwd: string): Promise<RepoInfo> {
   };
 }
 
-/** Repo-relative paths of tracked files. Ignored and untracked files are never listed. */
-export async function listTrackedFiles(root: string): Promise<string[]> {
-  // -z separates with NUL so unusual file names survive intact.
-  return (await git(root, ["ls-files", "-z"])).split("\0").filter(Boolean);
+/** Absolute path of the repository that contains `cwd`. Throws outside a git repo. */
+export async function getRepoRoot(cwd: string): Promise<string> {
+  return (await git(cwd, ["rev-parse", "--show-toplevel"])).trim();
+}
+
+/**
+ * Tracked files under `cwd` (the whole repo if `cwd` is the root), as paths relative to
+ * the repo ROOT. Ignored and untracked files are never listed.
+ */
+export async function listTrackedFiles(cwd: string): Promise<string[]> {
+  // -z separates with NUL so unusual file names survive; --full-name keeps paths root-relative.
+  return (await git(cwd, ["ls-files", "-z", "--full-name"])).split("\0").filter(Boolean);
 }

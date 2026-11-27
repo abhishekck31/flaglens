@@ -9,6 +9,7 @@ See, toggle and track your [Flagsmith](https://flagsmith.com) feature flags with
 - **Safe toggling:** environments whose name contains "prod" need a confirmation in a modal dialog. Environments using v2 feature versioning are refused with an explanation.
 - **Hover cards:** state and value in every environment, reference count, and a link to the flag in the dashboard.
 - **Typo detection:** keys passed to `hasFeature`, `isFeatureEnabled`, `getValue`, `getFeatureValue`, `getFlag` and `useFlags([...])` that don't exist in Flagsmith are underlined. Quick fixes: **Did you mean …?** and **Create flag in Flagsmith** (created off everywhere).
+- **Flag Health view:** three groups for the open folder. **Unused** lists flags no tracked file mentions. **Missing in Flagsmith** lists SDK-call keys with no matching flag; click one to jump to the line. **Fully rolled out** lists flags that are on in every environment, which are candidates for cleanup. It updates after connect, refresh, toggle, push and file save.
 - **Push code references:** scans every tracked file and uploads `file:line` references to Flagsmith, so the dashboard shows where each flag is used.
 
 ## Getting started
