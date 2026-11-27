@@ -313,9 +313,11 @@ function writeEnvFiles(devEnvKey, prodEnvKey) {
     "",
   ].join("\n");
 
-  fs.writeFileSync(path.join(ROOT_DIR, ".env.local"), localContent, "utf8");
-  fs.writeFileSync(path.join(ROOT_DIR, ".env.example"), exampleContent, "utf8");
-  console.log("Wrote .env.local and .env.example");
+  // Next.js only reads .env.local from the app's own folder, so write it there.
+  const appDir = path.join(ROOT_DIR, "apps", "demo-store");
+  fs.writeFileSync(path.join(appDir, ".env.local"), localContent, "utf8");
+  fs.writeFileSync(path.join(appDir, ".env.example"), exampleContent, "utf8");
+  console.log("Wrote apps/demo-store/.env.local and apps/demo-store/.env.example");
 }
 
 async function main() {

@@ -3,8 +3,8 @@ import { FlagsmithProvider } from "@/components/FlagsmithProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ToggleWars Demo Store — Flagsmith DevBar",
-  description: "Self-hosted Flagsmith local QA, chaos testing, and Bayesian experimentation demo.",
+  title: "FlagLens Demo Store",
+  description: "Demo app whose flags are inspected and toggled by the FlagLens VS Code extension.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
