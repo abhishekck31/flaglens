@@ -184,6 +184,23 @@ async function setFeatureState(envApiKey, featureId, enabled) {
   }
 }
 
+// Sets a string value on a feature's environment-level state.
+// /features/featurestates/{id}/ needs `environment` and `feature` in the body (500s without them),
+// and the value as a typed object, not a bare string.
+async function setFeatureStringValue(env, featureId, value) {
+  const states = listResults(await api(`/environments/${env.api_key}/featurestates/?feature=${featureId}`));
+  const state = states.find((s) => s.feature === featureId && !s.feature_segment && !s.identity);
+  if (!state) throw new Error(`Feature state not found for feature=${featureId} in env=${env.name}`);
+  await api(`/features/featurestates/${state.id}/`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      environment: env.id,
+      feature: featureId,
+      feature_state_value: { type: "unicode", string_value: value },
+    }),
+  });
+}
+
 async function ensureBooleanFeature(projectId, devEnvKey, prodEnvKey) {
   const features = await getFeatures(projectId);
   let feature = features.find((f) => f.name === "enable_express_checkout");
@@ -323,6 +340,10 @@ function writeEnvFiles(devEnvKey, prodEnvKey) {
 async function main() {
   const { project, devEnv, prodEnv } = await ensureOrgProjectEnvs();
   const ctaFeature = await ensureMultivariateFeature(project.id);
+  // Development shows a visible variant; Production keeps "control" (the default button text).
+  // This makes the demo-store typo visible: fix it and the Development button text changes.
+  await setFeatureStringValue(devEnv, ctaFeature.id, "Complete Order Now ->");
+  console.log(`Configured ${ctaFeature.name}: Development="Complete Order Now ->", Production="control"`);
   await ensureBooleanFeature(project.id, devEnv.api_key, prodEnv.api_key);
   const metric = await ensureExperimentMetric(devEnv.api_key);
   const experiment = await ensureAndStartExperiment(devEnv.api_key, ctaFeature, metric);

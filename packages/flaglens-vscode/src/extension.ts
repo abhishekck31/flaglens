@@ -4,6 +4,11 @@ import * as vscode from "vscode";
 import { FlagCodeLensProvider, type ToggleTarget } from "./flagCodeLens.ts";
 import { FlagHoverProvider } from "./flagHover.ts";
 import { UnknownFlagDiagnostics, UnknownFlagQuickFixes } from "./unknownFlags.ts";
+import { DEFAULT_EXCLUDE_DIRS } from "./codeReferences.ts";
+import { formatSummary, scanAndPush } from "./pushReferences.ts";
+
+/** "FlagLens" panel in the Output view: holds the full push report. */
+const output = vscode.window.createOutputChannel("FlagLens");
 import { FlagStore } from "./flagStore.ts";
 import { FlagsmithClient, normaliseApiUrl, type Environment, type Feature } from "./flagsmithClient.ts";
 import { FlagTreeProvider, type FlagTreeNode } from "./flagTree.ts";
@@ -171,6 +176,60 @@ async function createFlag(context: vscode.ExtensionContext, views: Views, name: 
   await reloadAll(context, views); // clears the warning once the flag exists
 }
 
+/** "FlagLens: Push code references": scan the repo and upload to Flagsmith. */
+async function pushReferences(context: vscode.ExtensionContext, views: Views): Promise<void> {
+  const client = await getClient(context);
+  const snapshot = views.store.current;
+  const folder = vscode.workspace.workspaceFolders?.[0];
+  if (!client || !snapshot) {
+    vscode.window.showErrorMessage("FlagLens: connect to Flagsmith first.");
+    return;
+  }
+  if (!folder) {
+    vscode.window.showErrorMessage("FlagLens: open a folder inside a git repository first.");
+    return;
+  }
+
+  try {
+    const outcome = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: "FlagLens: scanning and pushing code references..." },
+      () =>
+        scanAndPush({
+          client,
+          projectId: snapshot.project.id,
+          flagNames: views.store.flagNames(),
+          cwd: folder.uri.fsPath,
+          excludeDirs: vscode.workspace
+            .getConfiguration("flaglens")
+            .get<string[]>("scanExcludeDirs", DEFAULT_EXCLUDE_DIRS),
+          confirmRisk: (warning) => confirmModal("Push code references anyway?", warning, "Push anyway"),
+        }),
+    );
+
+    if (outcome.kind === "refused") {
+      vscode.window.showErrorMessage(`FlagLens: ${outcome.reason}`);
+      return;
+    }
+    if (outcome.kind === "cancelled") return;
+
+    output.clear();
+    output.appendLine(formatSummary(outcome, snapshot.project.name));
+    const { summary } = outcome;
+    const zero = summary.unreferenced.length ? ` Flags with 0 refs: ${summary.unreferenced.join(", ")}.` : "";
+    const choice = await vscode.window.showInformationMessage(
+      `FlagLens: pushed ${summary.totalReferences} references across ${summary.byFlag.size} flags.${zero}`,
+      "Show details",
+    );
+    if (choice) output.show();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    vscode.window.showErrorMessage(`FlagLens could not push code references. ${message}`);
+  } finally {
+    // New counts for the tree, hover cards and CodeLens.
+    await reloadAll(context, views);
+  }
+}
+
 export function activate(context: vscode.ExtensionContext): void {
   const tree = new FlagTreeProvider(() => getClient(context));
   const treeView = vscode.window.createTreeView("flaglens.flags", { treeDataProvider: tree });
@@ -188,6 +247,8 @@ export function activate(context: vscode.ExtensionContext): void {
       UnknownFlagQuickFixes.metadata,
     ),
     vscode.commands.registerCommand("flaglens.createFlag", (name: string) => createFlag(context, views, name)),
+    vscode.commands.registerCommand("flaglens.pushCodeReferences", () => pushReferences(context, views)),
+    output,
     vscode.commands.registerCommand("flaglens.connect", () => connect(context, views)),
     vscode.commands.registerCommand("flaglens.disconnect", () => disconnect(context, views)),
     vscode.commands.registerCommand("flaglens.refresh", () => reloadAll(context, views)),

@@ -48,6 +48,12 @@
         "command": "flaglens.createFlag",
         "title": "Create flag in Flagsmith",
         "category": "FlagLens"
+      },
+      {
+        "command": "flaglens.pushCodeReferences",
+        "title": "Push code references to Flagsmith",
+        "category": "FlagLens",
+        "icon": "$(cloud-upload)"
       }
     ],
     "configuration": {
@@ -82,6 +88,22 @@
           "type": "string",
           "default": "",
           "description": "Flagsmith dashboard URL for links in hover cards. Empty means the API URL without /api/v1 (right for the official docker-compose setup)."
+        },
+        "flaglens.scanExcludeDirs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            "dist",
+            "out",
+            ".next",
+            "test",
+            "tests",
+            "__tests__"
+          ],
+          "description": "Directory names skipped when pushing code references (in addition to .gitignore, Markdown files and *.test.* / *.spec.* files)."
         }
       }
     },
@@ -112,6 +134,11 @@
     "menus": {
       "view/title": [
         {
+          "command": "flaglens.pushCodeReferences",
+          "when": "view == flaglens.flags && flaglens.connected",
+          "group": "navigation"
+        },
+        {
           "command": "flaglens.refresh",
           "when": "view == flaglens.flags",
           "group": "navigation"
@@ -140,7 +167,8 @@
     "build": "esbuild src/extension.ts --bundle --platform=node --format=cjs --target=node20 --external:vscode --outfile=dist/extension.cjs --sourcemap",
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.ts",
-    "smoke": "node scripts/smoke.ts"
+    "smoke": "node scripts/smoke.ts",
+    "push": "node scripts/push.ts"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

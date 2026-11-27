@@ -126,6 +126,25 @@ export class FlagsmithClient {
     });
   }
 
+  /**
+   * POST /api/v1/projects/<id>/code-references/
+   * The latest scan per repository replaces the previous one, so this is ALWAYS sent,
+   * even with an empty list: that's how references to deleted code get cleared.
+   */
+  pushCodeReferences(
+    projectId: number,
+    scan: {
+      repository_url: string;
+      revision: string;
+      code_references: Array<{ feature_name: string; file_path: string; line_number: number }>;
+    },
+  ): Promise<unknown> {
+    return this.request(`${this.baseUrl}/projects/${projectId}/code-references/`, {
+      method: "POST",
+      body: { ...scan, vcs_provider: "github" }, // the only provider Flagsmith 2.295.2 accepts
+    });
+  }
+
   /** GET /api/v1/environments/<env api key>/featurestates/<id>/ : the flag's current state. */
   getFeatureState(environmentApiKey: string, featureStateId: number): Promise<{ id: number; enabled: boolean }> {
     return this.request(`${this.baseUrl}/environments/${environmentApiKey}/featurestates/${featureStateId}/`);
