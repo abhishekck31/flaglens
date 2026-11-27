@@ -1,0 +1,63 @@
+# Example: run FlagLens check on every pull request and comment the result on the PR.
+#
+# This repo's Flagsmith is self-hosted on a laptop, which GitHub's runners can't reach, so the
+# job starts its OWN throwaway Flagsmith (same pinned compose file), seeds the demo flags and
+# checks against that. In your project, skip the first three steps and pass your instance:
+#
+#   - uses: abhishekck31/flaglens/.github/actions/flaglens-check@main
+#     with:
+#       api-url: https://flagsmith.internal.example.com/api/v1/
+#       api-key: ${{ secrets.FLAGSMITH_ORG_API_KEY }}
+
+name: FlagLens check
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write # to post and update the PR comment
+
+jobs:
+  flaglens-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Start throwaway self-hosted Flagsmith
+        run: npm run up
+
+      - name: Create admin, organisation and API key
+        run: node scripts/ci-bootstrap.mjs
+
+      - name: Seed demo project and flags
+        run: npm run seed
+
+      - name: FlagLens check
+        id: check
+        uses: ./.github/actions/flaglens-check
+        with:
+          api-key: ${{ env.FLAGLENS_API_KEY }}
+
+      # Runs even when the check failed, so the PR shows WHY. Updates one comment
+      # (found by its hidden marker) instead of adding a new one per push.
+      - name: Comment on the PR
+        if: always() && github.event_name == 'pull_request' && steps.check.outputs.report-file != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          REPORT: ${{ steps.check.outputs.report-file }}
+        run: |
+          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+            --jq '.[] | select(.body | startswith("<!-- flaglens-check -->")) | .id' | tail -n 1)
+          if [ -n "$id" ]; then
+            gh api --silent -X PATCH "repos/$REPO/issues/comments/$id" -F body=@"$REPORT"
+          else
+            gh api --silent "repos/$REPO/issues/$PR/comments" -F body=@"$REPORT"
+          fi

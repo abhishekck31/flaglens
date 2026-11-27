@@ -210,9 +210,10 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.ts",
     "smoke": "node scripts/smoke.ts",
-    "push": "node scripts/push.ts",
+    "push": "node src/cli.ts push",
     "vscode:prepublish": "npm run build",
-    "package": "vsce package --no-dependencies"
+    "package": "vsce package --no-dependencies",
+    "check": "node src/cli.ts check"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

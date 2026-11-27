@@ -73,6 +73,31 @@ Flagsmith ships an official scanner, the [`Flagsmith/ci`](https://github.com/Fla
   - Same thing from a terminal: `FLAGLENS_API_KEY=<key> npm --prefix packages/flaglens-vscode run push` (add `--allow-unpushed` to skip the safety stop).
   - Because it uses a plain "quoted name" match, a flag name quoted in a comment counts as a reference.
 
+## Catch missing flags in CI: `flaglens check`
+
+The same matcher as the editor's typo warnings, as a command line tool (no VS Code needed, Node 22.18+, no install):
+
+```bash
+FLAGLENS_API_KEY=<organisation key> npm run check            # text: file:line:col + "Did you mean"
+FLAGLENS_API_KEY=<organisation key> npm run check -- --json  # machine-readable
+```
+
+It exits **1** if any `hasFeature` / `getValue` / `useFlags([...])` / … key doesn't exist in Flagsmith, **2** on a config or network error, **0** otherwise.
+It scans git-tracked files and reads `flaglens.exclude`, `flaglens.callPatterns` and `flaglens.projectId` from `.vscode/settings.json`, so CI and the editor agree.
+
+**GitHub Action:** [`.github/actions/flaglens-check`](.github/actions/flaglens-check/action.yml) runs the check, annotates the offending lines and writes a Markdown report.
+[`.github/workflows/flaglens-check.yml`](.github/workflows/flaglens-check.yml) is an example that comments the report on the PR and keeps one comment updated.
+Because this demo's Flagsmith runs on a laptop, that workflow starts a throwaway Flagsmith on the runner and seeds it; with your own instance, pass `api-url` and an `api-key` secret instead:
+
+```yaml
+- uses: abhishekck31/flaglens/.github/actions/flaglens-check@main
+  with:
+    api-url: https://flagsmith.example.com/api/v1/
+    api-key: ${{ secrets.FLAGSMITH_ORG_API_KEY }}
+```
+
+Note: in this repo the demo store keeps its intentional typo, so the check fails on every PR to `main` by design.
+
 ## License
 
 MIT

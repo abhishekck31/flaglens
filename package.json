@@ -10,7 +10,8 @@
     "build": "npm --prefix packages/flaglens-vscode run build",
     "test": "npm --prefix packages/flaglens-vscode test",
     "typecheck": "npm --prefix packages/flaglens-vscode run typecheck",
-    "package": "npm --prefix packages/flaglens-vscode run package"
+    "package": "npm --prefix packages/flaglens-vscode run package",
+    "check": "npm --prefix packages/flaglens-vscode run check --"
   },
   "description": "FlagLens: a VS Code extension for self-hosted Flagsmith"
 }

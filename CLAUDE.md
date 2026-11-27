@@ -12,7 +12,10 @@ Hard deadline: Nov 29 2026, 8:00 PM IST. Target submit: 6:00 PM IST.
 - `packages/flaglens-vscode`: the extension. Files without a `vscode` import (`flagsmithClient.ts`, `format.ts`, `suggest.ts`,
   `toggle.ts`, `flagScanner.ts`) hold the logic and are unit-tested; the rest is VS Code wiring.
   `npm run typecheck`, `npm test`, `npm run build`; `npm run smoke` is a read-only live check;
-  `npm run package` writes the .vsix. Releases: bump `version` + CHANGELOG, then push tag `v<version>`
+  `npm run package` writes the .vsix. `src/cli.ts` (`npm run check` / `npm run push`) is the no-VS-Code CLI;
+  `.github/actions/flaglens-check` wraps `check`, and `.github/workflows/flaglens-check.yml` runs it on PRs against a
+  throwaway Flagsmith started on the runner (`scripts/ci-bootstrap.mjs` creates its admin, org and key).
+  Releases: bump `version` + CHANGELOG, then push tag `v<version>`
   (.github/workflows/release.yml attaches the .vsix to a GitHub Release).
 - `docs/upstream-issue.md`: draft issue for Flagsmith/ci. Not filed.
 - Branch `devbar-prototype`: archived earlier prototype. Do not merge.

@@ -1,0 +1,72 @@
+name: FlagLens check
+description: Fail when code uses Flagsmith flag keys that don't exist (typos, deleted flags), with "did you mean" suggestions.
+author: FlagLens
+
+inputs:
+  api-key:
+    description: Flagsmith Organisation API key (store it as a secret).
+    required: true
+  api-url:
+    description: Your Flagsmith API, reachable from the runner.
+    default: http://localhost:8000/api/v1/
+  project:
+    description: Flagsmith project id. Empty = .vscode/settings.json flaglens.projectId, else the first project.
+    default: ""
+  path:
+    description: Folder to scan (tracked files under it).
+    default: .
+  fail-on-missing:
+    description: Fail the step when missing keys are found.
+    default: "true"
+
+outputs:
+  missing-count:
+    description: Number of missing flag keys found.
+    value: ${{ steps.check.outputs.missing-count }}
+  report-file:
+    description: Markdown report (for a PR comment).
+    value: ${{ steps.check.outputs.report-file }}
+  json-file:
+    description: The same result as JSON.
+    value: ${{ steps.check.outputs.json-file }}
+
+runs:
+  using: composite
+  steps:
+    # The CLI is plain TypeScript run by Node's built-in type stripping: no install or build needed.
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+
+    - id: check
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        FLAGLENS_API_KEY: ${{ inputs.api-key }}
+        FLAGLENS_API_URL: ${{ inputs.api-url }}
+        PROJECT: ${{ inputs.project }}
+        FAIL_ON_MISSING: ${{ inputs.fail-on-missing }}
+        CLI: ${{ github.action_path }}/../../../packages/flaglens-vscode/src/cli.ts
+      run: |
+        report="$RUNNER_TEMP/flaglens-report.md"
+        json="$RUNNER_TEMP/flaglens-report.json"
+        args=(check --markdown-file "$report" --json-file "$json")
+        if [ -n "$PROJECT" ]; then args+=(--project "$PROJECT"); fi
+
+        # Exit codes: 0 = OK, 1 = missing keys, 2 = config/network error.
+        set +e
+        node "$CLI" "${args[@]}"
+        code=$?
+        set -e
+
+        if [ -f "$json" ]; then
+          count=$(node -e 'console.log(require(process.argv[1]).findings.length)' "$json")
+          echo "missing-count=$count" >> "$GITHUB_OUTPUT"
+          echo "report-file=$report" >> "$GITHUB_OUTPUT"
+          echo "json-file=$json" >> "$GITHUB_OUTPUT"
+          cat "$report" >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+        if [ "$code" -eq 2 ]; then exit 2; fi
+        if [ "$code" -eq 1 ] && [ "$FAIL_ON_MISSING" = "true" ]; then exit 1; fi
+        exit 0
