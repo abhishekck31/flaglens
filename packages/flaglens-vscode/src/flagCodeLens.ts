@@ -2,7 +2,7 @@
 // Clicking one runs `flaglens.toggleFlag` for that flag + environment.
 //
 //   Development: ● on  |  ⚠ Production: ○ off
-//   flagsmith.hasFeature("enable_express_checkout")
+//   flagsmith.hasFeature("new_checkout")
 
 import * as vscode from "vscode";
 import { findFlagReferences } from "./flagScanner.ts";
