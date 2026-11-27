@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-11-27)
 
 - "FlagLens: Start local Flagsmith" (asks before touching a running stack), "Open dashboard", and a 4-step getting-started walkthrough.
 - Releases also publish to Open VSX when the `OVSX_TOKEN` secret is set.

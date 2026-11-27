@@ -2,7 +2,7 @@
   "name": "flaglens",
   "displayName": "FlagLens for Self-Hosted Flagsmith",
   "description": "See, toggle and track Flagsmith feature flags from VS Code. Built for self-hosted Flagsmith.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "togglewars",
   "license": "MIT",
   "icon": "media/icon.png",

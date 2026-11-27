@@ -1,8 +1,17 @@
 # FlagLens
 
-A VS Code extension for **self-hosted Flagsmith**: see your feature flags next to the code that uses them, toggle them without leaving the editor, and push code references back into Flagsmith.
+A VS Code extension for **self-hosted Flagsmith**: see your feature flags next to the code that uses them, toggle them without leaving the editor, and push code references back into Flagsmith. Works in VS Code, Cursor, Antigravity and other VS Code-based editors.
 
 Built for the Toggle Wars hackathon (Track 03: Build on Open Source Flagsmith). The extension lives in [`packages/flaglens-vscode`](packages/flaglens-vscode).
+
+## What FlagLens gives you
+
+- **Sidebar & CodeLens:** See every project, environment, flag value, and code-reference count right above your SDK calls (`hasFeature`, `getValue`, `useFlags`, etc.).
+- **Safe toggling:** Flip flags from the sidebar or CodeLens with live state re-reads, v2-versioning protection, and a modal confirmation on production environments.
+- **Typo diagnostics & quick fixes:** Unknown flag keys get inline warnings with **Did you mean …?** (Levenshtein ≤ 3) and **Create flag in Flagsmith** quick fixes.
+- **Flag Health view:** Surfaces **Unused** (0 refs), **Missing in Flagsmith** (click to jump to the typo'd line), and **Fully rolled out** flags — plus safe TS/JS/TSX **Remove flag (keep enabled path)** refactoring with diff preview.
+- **Code references & CI guardrails:** Push full repository scans to Flagsmith's Code References API (from VS Code or CLI), and catch missing flags in PRs with `flaglens check` and [`.github/actions/flaglens-check`](.github/actions/flaglens-check/action.yml).
+- **1-click local stack:** **FlagLens: Start local Flagsmith** + a 4-step getting-started walkthrough.
 
 ## Quickstart
 
@@ -35,8 +44,8 @@ Prerequisites: Docker Desktop (running), Node.js 22+, git, and VS Code 1.90+ wit
 
 4. **Install the extension** from the [latest release](https://github.com/abhishekck31/flaglens/releases/latest):
    ```bash
-   curl -LO https://github.com/abhishekck31/flaglens/releases/latest/download/flaglens-0.1.0.vsix
-   code --install-extension flaglens-0.1.0.vsix
+   curl -LO https://github.com/abhishekck31/flaglens/releases/latest/download/flaglens-0.2.0.vsix
+   code --install-extension flaglens-0.2.0.vsix
    ```
    On Windows PowerShell, type `curl.exe` instead of `curl`. Or download the file in your browser and use
    VS Code: Extensions view → `…` menu → Install from VSIX…
@@ -73,7 +82,7 @@ Flagsmith ships an official scanner, the [`Flagsmith/ci`](https://github.com/Fla
   - Same thing from a terminal: `FLAGLENS_API_KEY=<key> npm --prefix packages/flaglens-vscode run push` (add `--allow-unpushed` to skip the safety stop).
   - Because it uses a plain "quoted name" match, a flag name quoted in a comment counts as a reference.
 - **Where it shows up in Flagsmith:** the dashboard (checked on self-hosted 2.295.2) shows a code-reference badge next to each flag on the Features list. In the demo project, `enable_express_checkout` shows **1** and `checkout_cta_variant` shows an orange **0**. The 0 is real: the demo store's only use of that flag is the deliberate typo `checkout_cta_varient`, so the scan finds no reference to the real name. Fixing the typo and pushing references again turns it into 1.
-  <!-- Screenshot planned: docs/images/dashboard-code-reference-badges.png (Features list, Development, both badges visible). -->
+  ![Flagsmith dashboard showing code-reference badges: checkout_cta_variant with orange 0 and enable_express_checkout with 1](docs/images/dashboard-code-reference-badges.jpg)
 
 ## Catch missing flags in CI: `flaglens check`
 
