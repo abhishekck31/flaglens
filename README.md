@@ -6,7 +6,8 @@ Built for the Toggle Wars hackathon (Track 03: Build on Open Source Flagsmith). 
 
 ## Quickstart
 
-Prerequisites: Docker Desktop (running), Node.js 20+, git, and VS Code 1.90+ with the `code` command on your PATH.
+Prerequisites: Docker Desktop (running), Node.js 22+, git, and VS Code 1.90+ with the `code` command on your PATH
+(VS Code: Command Palette → "Shell Command: Install 'code' command in PATH" if `code` isn't found).
 
 1. **Clone and start self-hosted Flagsmith** (Postgres, API, task processor; image pinned to `2.295.2`):
    ```bash
@@ -14,24 +15,31 @@ Prerequisites: Docker Desktop (running), Node.js 20+, git, and VS Code 1.90+ wit
    cd flaglens
    npm run up
    ```
-   Wait for `Flagsmith ready at http://localhost:8000`.
+   Wait for `Flagsmith ready at http://localhost:8000`. The first start pulls images and runs database migrations, so it can take a few minutes.
 
-2. **Create your admin user and an Organisation API key.** Open http://localhost:8000, sign up, and create an organisation when asked.
-   Then go to Organisation Settings → API Keys → Create API Key, and copy the key.
+2. **Create your admin user and an Organisation API key.** Open http://localhost:8000 and sign up (the first user on a new instance is the admin).
+   If the dashboard asks you to create an organisation, do so. Then go to Organisation Settings → API Keys → Create API Key, and copy the key.
+   It must be an **Organisation** API key: environment (SDK) keys don't work for FlagLens or the seed script.
 
-3. **Seed demo data:**
+3. **Seed demo data.** Create the (git-ignored) config file:
    ```bash
-   cp flagsmith.env.example flagsmith.env   # then paste the key into flagsmith.env
+   cp flagsmith.env.example flagsmith.env
+   ```
+   Open `flagsmith.env` and replace `your_organisation_api_key` with your key, so the line reads
+   `FLAGSMITH_API_KEY_localhost_8000=<your key>`. Then run:
+   ```bash
    npm run seed
    ```
-   This creates a `Toggle Wars` project with `Development` and `Production` environments and two flags
+   The seed creates a `Toggle Wars` project with `Development` and `Production` environments and two flags
    (`checkout_cta_variant`, `enable_express_checkout`), and writes `apps/demo-store/.env.local`.
 
-4. **Install the extension.** Download `flaglens-0.1.0.vsix` from the [latest release](https://github.com/abhishekck31/flaglens/releases/latest), then:
+4. **Install the extension** from the [latest release](https://github.com/abhishekck31/flaglens/releases/latest):
    ```bash
+   curl -LO https://github.com/abhishekck31/flaglens/releases/latest/download/flaglens-0.1.0.vsix
    code --install-extension flaglens-0.1.0.vsix
    ```
-   (Or in VS Code: Extensions view → `…` menu → Install from VSIX…)
+   On Windows PowerShell, type `curl.exe` instead of `curl`. Or download the file in your browser and use
+   VS Code: Extensions view → `…` menu → Install from VSIX…
 
 5. **Connect.** Open the cloned folder in VS Code (`code .`), click the **FlagLens** icon in the activity bar, then **Connect to Flagsmith**.
    Keep the default URL `http://localhost:8000/api/v1/` and paste the same Organisation API key.

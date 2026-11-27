@@ -11,7 +11,9 @@ Hard deadline: Nov 29 2026, 8:00 PM IST. Target submit: 6:00 PM IST.
   Never run `npm run build:demo` while `npm run demo` is running: both write `.next` and the dev server breaks.
 - `packages/flaglens-vscode`: the extension. Files without a `vscode` import (`flagsmithClient.ts`, `format.ts`, `suggest.ts`,
   `toggle.ts`, `flagScanner.ts`) hold the logic and are unit-tested; the rest is VS Code wiring.
-  `npm run typecheck`, `npm test`, `npm run build`; `npm run smoke` is a read-only live check.
+  `npm run typecheck`, `npm test`, `npm run build`; `npm run smoke` is a read-only live check;
+  `npm run package` writes the .vsix. Releases: bump `version` + CHANGELOG, then push tag `v<version>`
+  (.github/workflows/release.yml attaches the .vsix to a GitHub Release).
 - `docs/upstream-issue.md`: draft issue for Flagsmith/ci. Not filed.
 - Branch `devbar-prototype`: archived earlier prototype. Do not merge.
 
