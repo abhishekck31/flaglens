@@ -51,6 +51,8 @@ export interface Feature {
   /** Only filled when the list is requested with `?environment=<id>`. */
   environment_feature_state: EnvironmentFeatureState | null;
   code_references_counts: CodeReferenceCount[];
+  /** Archived flags are still listed (and still served to SDKs); checked on 2.295.2. */
+  is_archived?: boolean;
 }
 
 /** Thrown for any non-2xx response, so callers can react to e.g. 401 vs 404. */
@@ -123,6 +125,18 @@ export class FlagsmithClient {
     return this.request(`${this.baseUrl}/projects/${projectId}/features/`, {
       method: "POST",
       body: { name, default_enabled: false },
+    });
+  }
+
+  /**
+   * PATCH /api/v1/projects/<id>/features/<feature id>/ with {"is_archived": true}.
+   * Schema: PatchedUpdateFeature, no required fields (checked on 2.295.2). Archiving applies to
+   * every environment; it can be undone in the dashboard.
+   */
+  archiveFeature(projectId: number, featureId: number): Promise<{ id: number; is_archived: boolean }> {
+    return this.request(`${this.baseUrl}/projects/${projectId}/features/${featureId}/`, {
+      method: "PATCH",
+      body: { is_archived: true },
     });
   }
 

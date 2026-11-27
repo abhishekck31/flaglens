@@ -75,6 +75,11 @@
         "title": "Rescan flag health",
         "category": "FlagLens",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "flaglens.removeFlag",
+        "title": "Remove flag (keep enabled path)",
+        "category": "FlagLens"
       }
     ],
     "configuration": {
@@ -200,6 +205,10 @@
         },
         {
           "command": "flaglens.createFlag",
+          "when": "false"
+        },
+        {
+          "command": "flaglens.removeFlag",
           "when": "false"
         }
       ]

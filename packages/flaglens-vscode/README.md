@@ -10,6 +10,7 @@ See, toggle and track your [Flagsmith](https://flagsmith.com) feature flags with
 - **Hover cards:** state and value in every environment, reference count, and a link to the flag in the dashboard.
 - **Typo detection:** keys passed to `hasFeature`, `isFeatureEnabled`, `getValue`, `getFeatureValue`, `getFlag` and `useFlags([...])` that don't exist in Flagsmith are underlined. Quick fixes: **Did you mean …?** and **Create flag in Flagsmith** (created off everywhere).
 - **Flag Health view:** three groups for the open folder. **Unused** lists flags no tracked file mentions. **Missing in Flagsmith** lists SDK-call keys with no matching flag; click one to jump to the line. **Fully rolled out** lists flags that are on in every environment, which are candidates for cleanup. It updates after connect, refresh, toggle, push and file save.
+- **Remove flag (keep enabled path):** a refactoring (lightbulb / `Ctrl+.`) on flags that are on in every environment, in TS/JS/TSX files. It rewrites only `if (hasFeature("x")) {A} else {B}` → `A`, `hasFeature("x") ? A : B` → `A`, and `const v = getValue("x")` → the literal value (only when every environment has the same value). Changes open in the Refactor Preview first; anything else is listed as `manual cleanup needed: file:line`. Afterwards it offers to archive the flag in Flagsmith, behind a confirmation dialog.
 - **Push code references:** scans every tracked file and uploads `file:line` references to Flagsmith, so the dashboard shows where each flag is used.
 
 ## Getting started

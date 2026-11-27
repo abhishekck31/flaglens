@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- "Remove flag (keep enabled path)" refactoring for fully rolled-out flags (TS/JS/TSX), with preview, manual-cleanup list and optional archive.
+- Archived flags no longer count as fully rolled out.
 - `flaglens check` CLI (`--json`), GitHub Action and example PR-comment workflow.
 - Flag Health view: Unused, Missing in Flagsmith (click to jump to the line), and Fully rolled out.
 

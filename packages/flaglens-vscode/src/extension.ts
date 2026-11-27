@@ -7,6 +7,7 @@ import { UnknownFlagDiagnostics, UnknownFlagQuickFixes } from "./unknownFlags.ts
 import { DEFAULT_EXCLUDE_GLOBS } from "./codeReferences.ts";
 import { formatSummary, scanAndPush } from "./pushReferences.ts";
 import { FlagHealthProvider } from "./flagHealthView.ts";
+import { REMOVE_FLAG_KIND, REMOVE_FLAG_LANGUAGES, RemoveFlagActionProvider, removeFlagCommand } from "./removeFlagAction.ts";
 
 /** "FlagLens" panel in the Output view: holds the full push report. */
 const output = vscode.window.createOutputChannel("FlagLens");
@@ -244,6 +245,12 @@ export function activate(context: vscode.ExtensionContext): void {
     health,
     vscode.window.createTreeView("flaglens.health", { treeDataProvider: health }),
     vscode.commands.registerCommand("flaglens.scanHealth", () => health.scan()),
+    vscode.languages.registerCodeActionsProvider(REMOVE_FLAG_LANGUAGES, new RemoveFlagActionProvider(store), {
+      providedCodeActionKinds: [REMOVE_FLAG_KIND],
+    }),
+    vscode.commands.registerCommand("flaglens.removeFlag", (name: string) =>
+      removeFlagCommand(name, store, () => getClient(context), output),
+    ),
     vscode.languages.registerCodeLensProvider({ scheme: "file" }, new FlagCodeLensProvider(store)),
     vscode.languages.registerHoverProvider({ scheme: "file" }, new FlagHoverProvider(store)),
     new UnknownFlagDiagnostics(store),

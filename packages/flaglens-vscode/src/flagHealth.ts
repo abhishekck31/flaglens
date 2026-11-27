@@ -1,7 +1,7 @@
 // Flag Health: which flags look stale or broken. Pure logic, no `vscode` import.
 
 import { findFlagCalls, findFlagReferences } from "./flagScanner.ts";
-import type { Environment, Feature } from "./flagsmithClient.ts";
+import type { Environment, Feature, FlagValue } from "./flagsmithClient.ts";
 import type { ScannedFile } from "./repoFiles.ts";
 
 /** A key passed to an SDK call that no Flagsmith flag has (e.g. a typo). */
@@ -51,16 +51,46 @@ export function computeHealth(input: HealthInput): FlagHealth {
 
   const unused = [...flagNames].filter((name) => !referenced.has(name)).sort();
 
-  // Fully rolled out: the flag exists and is ON in every environment of the project.
   const fullyRolledOut = [...flagNames]
-    .filter(
-      (name) =>
-        input.environments.length > 0 &&
-        input.environments.every((env) =>
-          input.featuresByEnvironment.get(env.id)?.find((f) => f.name === name)?.environment_feature_state?.enabled === true,
-        ),
-    )
+    .filter((name) => isFullyRolledOut(name, input.environments, input.featuresByEnvironment))
     .sort();
 
   return { unused, missing, fullyRolledOut };
+}
+
+/**
+ * The flag exists, is not archived, and is ON in every environment of the project (and there is at
+ * least one). Archived flags are excluded: they've already been cleaned up in Flagsmith.
+ */
+export function isFullyRolledOut(
+  name: string,
+  environments: readonly Environment[],
+  featuresByEnvironment: ReadonlyMap<number, readonly Feature[]>,
+): boolean {
+  return (
+    environments.length > 0 &&
+    environments.every(
+      (env) => {
+        const feature = featuresByEnvironment.get(env.id)?.find((f) => f.name === name);
+        return feature?.is_archived !== true && feature?.environment_feature_state?.enabled === true;
+      },
+    )
+  );
+}
+
+/**
+ * The flag's value if it is the SAME string, number or boolean in every environment; otherwise
+ * undefined (no value, or values differ), in which case `getValue` can't be safely inlined.
+ */
+export function sharedValue(
+  name: string,
+  environments: readonly Environment[],
+  featuresByEnvironment: ReadonlyMap<number, readonly Feature[]>,
+): string | number | boolean | undefined {
+  const values: FlagValue[] = environments.map(
+    (env) => featuresByEnvironment.get(env.id)?.find((f) => f.name === name)?.environment_feature_state?.feature_state_value ?? null,
+  );
+  const first = values[0];
+  if (first === undefined || first === null) return undefined;
+  return values.every((v) => v === first) ? first : undefined;
 }
