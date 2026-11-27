@@ -7,9 +7,9 @@ Built for the Toggle Wars hackathon (Track 03: Build on Open Source Flagsmith). 
 ## What FlagLens gives you
 
 - **Sidebar & CodeLens:** See every project, environment, flag value, and code-reference count right above your SDK calls (`hasFeature`, `getValue`, `useFlags`, etc.).
-- **Safe toggling:** Flip flags from the sidebar or CodeLens with live state re-reads, v2-versioning protection, and a modal confirmation on production environments.
+- **Safe toggling & value editing:** Flip flags or edit remote-config values from the sidebar or CodeLens with live state re-reads, v2-versioning protection, and a modal confirmation on production environments.
 - **Typo diagnostics & quick fixes:** Unknown flag keys get inline warnings with **Did you mean …?** (Levenshtein ≤ 3) and **Create flag in Flagsmith** quick fixes.
-- **Flag Health view:** Surfaces **Unused** (0 refs), **Missing in Flagsmith** (click to jump to the typo'd line), and **Fully rolled out** flags — plus safe TS/JS/TSX **Remove flag (keep enabled path)** refactoring with diff preview.
+- **Flag Health view:** Surfaces **Unused** (0 refs, 1-click **Archive**), **Missing in Flagsmith** (click to jump to the typo'd line), and **Fully rolled out** flags — plus safe TS/JS/TSX **Remove flag (keep enabled path)** refactoring with diff preview.
 - **Code references & CI guardrails:** Push full repository scans to Flagsmith's Code References API (from VS Code or CLI), and catch missing flags in PRs with `flaglens check` and [`.github/actions/flaglens-check`](.github/actions/flaglens-check/action.yml).
 - **1-click local stack:** **FlagLens: Start local Flagsmith** + a 4-step getting-started walkthrough.
 
@@ -44,8 +44,8 @@ Prerequisites: Docker Desktop (running), Node.js 22+, git, and VS Code 1.90+ wit
 
 4. **Install the extension** from the [latest release](https://github.com/abhishekck31/flaglens/releases/latest):
    ```bash
-   curl -LO https://github.com/abhishekck31/flaglens/releases/latest/download/flaglens-0.2.0.vsix
-   code --install-extension flaglens-0.2.0.vsix
+   curl -LO https://github.com/abhishekck31/flaglens/releases/latest/download/flaglens-0.3.0.vsix
+   code --install-extension flaglens-0.3.0.vsix
    ```
    On Windows PowerShell, type `curl.exe` instead of `curl`. Or download the file in your browser and use
    VS Code: Extensions view → `…` menu → Install from VSIX…

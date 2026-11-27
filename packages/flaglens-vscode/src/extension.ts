@@ -6,7 +6,7 @@ import { FlagHoverProvider } from "./flagHover.ts";
 import { UnknownFlagDiagnostics, UnknownFlagQuickFixes } from "./unknownFlags.ts";
 import { DEFAULT_EXCLUDE_GLOBS } from "./codeReferences.ts";
 import { formatSummary, scanAndPush } from "./pushReferences.ts";
-import { FlagHealthProvider } from "./flagHealthView.ts";
+import { FlagHealthProvider, type HealthNode } from "./flagHealthView.ts";
 import { openDashboard, openDemoFile, startLocalFlagsmith, type StackDeps } from "./localStackCommand.ts";
 import { REMOVE_FLAG_KIND, REMOVE_FLAG_LANGUAGES, RemoveFlagActionProvider, removeFlagCommand } from "./removeFlagAction.ts";
 
@@ -15,7 +15,7 @@ const output = vscode.window.createOutputChannel("FlagLens");
 import { FlagStore } from "./flagStore.ts";
 import { FlagsmithClient, normaliseApiUrl, type Environment, type Feature } from "./flagsmithClient.ts";
 import { FlagTreeProvider, type FlagTreeNode } from "./flagTree.ts";
-import { toggleFlag } from "./toggle.ts";
+import { editFlagValue, parseFlagValueInput, toggleFlag } from "./toggle.ts";
 
 /** Name under which the Organisation API key lives in VS Code's SecretStorage (OS keychain). */
 const API_KEY_SECRET = "flaglens.organisationApiKey";
@@ -161,6 +161,103 @@ async function runToggle(context: vscode.ExtensionContext, views: Views, arg: Fl
   await reloadAll(context, views);
 }
 
+/** "Edit flag value": lets developers update remote-config values from the sidebar. */
+async function runEditValue(context: vscode.ExtensionContext, views: Views, arg: FlagTreeNode | ToggleTarget) {
+  const client = await getClient(context);
+  if (!client) {
+    vscode.window.showErrorMessage("FlagLens: connect to Flagsmith first.");
+    return;
+  }
+
+  let target: { environment: Environment; feature: Feature } | undefined;
+  if ("kind" in arg) {
+    if (arg.kind === "flag") target = { environment: arg.environment, feature: arg.feature };
+  } else {
+    target = views.store.find(arg.environmentId, arg.featureName);
+  }
+  if (!target) {
+    vscode.window.showErrorMessage("FlagLens: that flag is no longer loaded. Refresh and try again.");
+    return;
+  }
+
+  const { environment, feature } = target;
+  try {
+    const outcome = await editFlagValue(
+      client,
+      environment,
+      feature,
+      async (currentValue) => {
+        const raw = await vscode.window.showInputBox({
+          title: `Edit "${feature.name}" in ${environment.name}`,
+          prompt: "Enter new value (leave blank for null if unset).",
+          value: currentValue === null ? "" : String(currentValue),
+          ignoreFocusOut: true,
+          validateInput: (val) => {
+            const parsed = parseFlagValueInput(val, currentValue);
+            return parsed.ok ? undefined : parsed.error;
+          },
+        });
+        if (raw === undefined) return undefined;
+        const parsed = parseFlagValueInput(raw, currentValue);
+        return parsed.ok ? parsed.value : undefined;
+      },
+      confirmModal,
+    );
+
+    if (outcome.kind === "refused") {
+      vscode.window.showErrorMessage(`FlagLens: ${outcome.reason}`);
+    } else if (outcome.kind === "updated") {
+      vscode.window.showInformationMessage(
+        `FlagLens: "${feature.name}" value in ${environment.name} is now ${JSON.stringify(outcome.value)}.`,
+      );
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    vscode.window.showErrorMessage(`FlagLens could not update value for "${feature.name}". ${message}`);
+  }
+  await reloadAll(context, views);
+}
+
+/** "Archive unused flag": archives an unreferenced flag directly from Flag Health. */
+async function archiveUnusedFlag(context: vscode.ExtensionContext, views: Views, node: HealthNode): Promise<void> {
+  if (node.kind !== "unused") return;
+  const client = await getClient(context);
+  const snapshot = views.store.current;
+  if (!client || !snapshot) {
+    vscode.window.showErrorMessage("FlagLens: connect to Flagsmith first.");
+    return;
+  }
+
+  let featureId: number | undefined;
+  for (const features of snapshot.featuresByEnvironment.values()) {
+    const match = features.find((f) => f.name === node.name);
+    if (match) {
+      featureId = match.id;
+      break;
+    }
+  }
+  if (featureId === undefined) {
+    vscode.window.showErrorMessage(`FlagLens: "${node.name}" is no longer loaded. Refresh and try again.`);
+    return;
+  }
+
+  const confirmed = await confirmModal(
+    `Archive "${node.name}" in Flagsmith?`,
+    `No tracked file in this folder references "${node.name}". Archiving marks it archived across all environments.`,
+    "Archive flag",
+  );
+  if (!confirmed) return;
+
+  try {
+    await client.archiveFeature(snapshot.project.id, featureId);
+    vscode.window.showInformationMessage(`FlagLens: archived "${node.name}" in ${snapshot.project.name}.`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    vscode.window.showErrorMessage(`FlagLens could not archive "${node.name}". ${message}`);
+  }
+  await reloadAll(context, views);
+}
+
 /** Quick fix "Create flag 'x' in Flagsmith": creates it (off everywhere) in the CodeLens project. */
 async function createFlag(context: vscode.ExtensionContext, views: Views, name: string): Promise<void> {
   const client = await getClient(context);
@@ -253,8 +350,13 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.languages.registerCodeActionsProvider(REMOVE_FLAG_LANGUAGES, new RemoveFlagActionProvider(store), {
       providedCodeActionKinds: [REMOVE_FLAG_KIND],
     }),
-    vscode.commands.registerCommand("flaglens.removeFlag", (name: string) =>
-      removeFlagCommand(name, store, () => getClient(context), output),
+    vscode.commands.registerCommand("flaglens.removeFlag", (arg: string | HealthNode) => {
+      const name = typeof arg === "string" ? arg : arg.kind === "rolledOut" ? arg.name : undefined;
+      if (name) return removeFlagCommand(name, store, () => getClient(context), output);
+      return undefined;
+    }),
+    vscode.commands.registerCommand("flaglens.archiveUnusedFlag", (node: HealthNode) =>
+      archiveUnusedFlag(context, views, node),
     ),
     vscode.languages.registerCodeLensProvider({ scheme: "file" }, new FlagCodeLensProvider(store)),
     vscode.languages.registerHoverProvider({ scheme: "file" }, new FlagHoverProvider(store)),
@@ -272,6 +374,9 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("flaglens.refresh", () => reloadAll(context, views)),
     vscode.commands.registerCommand("flaglens.toggleFlag", (arg: FlagTreeNode | ToggleTarget) =>
       runToggle(context, views, arg),
+    ),
+    vscode.commands.registerCommand("flaglens.editValue", (arg: FlagTreeNode | ToggleTarget) =>
+      runEditValue(context, views, arg),
     ),
     // If the URL or project setting is edited by hand, reload from the new source.
     vscode.workspace.onDidChangeConfiguration((e) => {

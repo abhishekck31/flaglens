@@ -29,6 +29,40 @@ export interface Environment {
 
 export type FlagValue = string | number | boolean | null;
 
+/** Nested payload expected by PATCH /api/v1/features/featurestates/<id>/. */
+export type FeatureStateValuePayload =
+  | { type: "unicode"; string_value: string | null }
+  | { type: "int"; integer_value: number }
+  | { type: "bool"; boolean_value: boolean };
+
+export function toFeatureStateValuePayload(value: FlagValue): FeatureStateValuePayload {
+  if (typeof value === "number") {
+    return { type: "int", integer_value: Math.trunc(value) };
+  }
+  if (typeof value === "boolean") {
+    return { type: "bool", boolean_value: value };
+  }
+  return { type: "unicode", string_value: value };
+}
+
+export function fromFeatureStateValuePayload(raw: unknown): FlagValue {
+  if (raw === null || typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean") {
+    return raw;
+  }
+  if (typeof raw === "object") {
+    const obj = raw as {
+      type?: string;
+      string_value?: string | null;
+      integer_value?: number | null;
+      boolean_value?: boolean | null;
+    };
+    if (obj.type === "int") return obj.integer_value ?? null;
+    if (obj.type === "bool") return obj.boolean_value ?? null;
+    if (obj.type === "unicode") return obj.string_value ?? null;
+  }
+  return null;
+}
+
 /** A flag's state in one environment (its environment default, not segment/identity overrides). */
 export interface EnvironmentFeatureState {
   /** Feature-state id; this is what gets PATCHed to toggle the flag. */
@@ -180,6 +214,31 @@ export class FlagsmithClient {
       method: "PATCH",
       body: { enabled },
     });
+  }
+
+  /**
+   * PATCH /api/v1/features/featurestates/<id>/ with nested `feature_state_value`.
+   * SimpleFeatureStateViewSet accepts writable values, while the environment endpoint's
+   * `feature_state_value` field is read-only on Flagsmith 2.295.2.
+   */
+  async setFeatureStateValue(
+    featureStateId: number,
+    featureId: number,
+    environmentId: number,
+    value: FlagValue,
+  ): Promise<{ feature_state_value: FlagValue }> {
+    const res = await this.request<{ feature_state_value: unknown }>(
+      `${this.baseUrl}/features/featurestates/${featureStateId}/`,
+      {
+        method: "PATCH",
+        body: {
+          feature: featureId,
+          environment: environmentId,
+          feature_state_value: toFeatureStateValuePayload(value),
+        },
+      },
+    );
+    return { feature_state_value: fromFeatureStateValuePayload(res.feature_state_value) };
   }
 
   /**

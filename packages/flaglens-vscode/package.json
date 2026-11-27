@@ -2,7 +2,7 @@
   "name": "flaglens",
   "displayName": "FlagLens for Self-Hosted Flagsmith",
   "description": "See, toggle and track Flagsmith feature flags from VS Code. Built for self-hosted Flagsmith.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "togglewars",
   "license": "MIT",
   "icon": "media/icon.png",
@@ -60,6 +60,12 @@
         "icon": "$(arrow-swap)"
       },
       {
+        "command": "flaglens.editValue",
+        "title": "Edit flag value",
+        "category": "FlagLens",
+        "icon": "$(edit)"
+      },
+      {
         "command": "flaglens.createFlag",
         "title": "Create flag in Flagsmith",
         "category": "FlagLens"
@@ -79,7 +85,14 @@
       {
         "command": "flaglens.removeFlag",
         "title": "Remove flag (keep enabled path)",
-        "category": "FlagLens"
+        "category": "FlagLens",
+        "icon": "$(wand)"
+      },
+      {
+        "command": "flaglens.archiveUnusedFlag",
+        "title": "Archive unused flag",
+        "category": "FlagLens",
+        "icon": "$(archive)"
       },
       {
         "command": "flaglens.startLocalFlagsmith",
@@ -210,8 +223,23 @@
       ],
       "view/item/context": [
         {
+          "command": "flaglens.editValue",
+          "when": "view == flaglens.flags && viewItem == flag",
+          "group": "inline@1"
+        },
+        {
           "command": "flaglens.toggleFlag",
           "when": "view == flaglens.flags && viewItem == flag",
+          "group": "inline@2"
+        },
+        {
+          "command": "flaglens.archiveUnusedFlag",
+          "when": "view == flaglens.health && viewItem == healthUnused",
+          "group": "inline"
+        },
+        {
+          "command": "flaglens.removeFlag",
+          "when": "view == flaglens.health && viewItem == healthRolledOut",
           "group": "inline"
         }
       ],
@@ -221,11 +249,19 @@
           "when": "false"
         },
         {
+          "command": "flaglens.editValue",
+          "when": "false"
+        },
+        {
           "command": "flaglens.createFlag",
           "when": "false"
         },
         {
           "command": "flaglens.removeFlag",
+          "when": "false"
+        },
+        {
+          "command": "flaglens.archiveUnusedFlag",
           "when": "false"
         }
       ]

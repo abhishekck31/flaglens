@@ -116,6 +116,7 @@ export class FlagHealthProvider implements vscode.TreeDataProvider<HealthNode>, 
         const item = new vscode.TreeItem(node.name);
         item.description = "0 references";
         item.iconPath = new vscode.ThemeIcon("circle-slash");
+        item.contextValue = "healthUnused";
         item.tooltip = `No tracked file in this folder mentions "${node.name}". If it's really unused, archive it in Flagsmith.`;
         return item;
       }
@@ -142,6 +143,7 @@ export class FlagHealthProvider implements vscode.TreeDataProvider<HealthNode>, 
         const item = new vscode.TreeItem(node.name);
         item.description = `on in all ${envCount} environments`;
         item.iconPath = new vscode.ThemeIcon("pass-filled", new vscode.ThemeColor("testing.iconPassed"));
+        item.contextValue = "healthRolledOut";
         item.tooltip =
           `"${node.name}" is on everywhere. If the rollout is final, remove the flag check from the code ` +
           "(keep the 'on' branch) and archive the flag in Flagsmith.";

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 (2026-11-27)
+
+- **Edit flag value** from the Flags sidebar (`PATCH /api/v1/features/featurestates/<id>/`), with live state re-reads, v2-versioning protection, and modal confirmation for production environments.
+- **Flag Health quick actions:** archive **Unused** flags directly from the sidebar (with confirmation) and trigger **Remove flag (keep enabled path)** inline on **Fully rolled out** flags.
+
 ## 0.2.0 (2026-11-27)
 
 - "FlagLens: Start local Flagsmith" (asks before touching a running stack), "Open dashboard", and a 4-step getting-started walkthrough.
