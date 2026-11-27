@@ -1,0 +1,56 @@
+{
+  "name": "flaglens",
+  "displayName": "FlagLens for Self-Hosted Flagsmith",
+  "description": "See, toggle and track Flagsmith feature flags from VS Code. Built for self-hosted Flagsmith.",
+  "version": "0.1.0",
+  "publisher": "togglewars",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abhishekck31/flaglens"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.cjs",
+  "contributes": {
+    "commands": [
+      {
+        "command": "flaglens.connect",
+        "title": "Connect to Flagsmith",
+        "category": "FlagLens"
+      },
+      {
+        "command": "flaglens.disconnect",
+        "title": "Disconnect (forget API key)",
+        "category": "FlagLens"
+      }
+    ],
+    "configuration": {
+      "title": "FlagLens",
+      "properties": {
+        "flaglens.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8000/api/v1/",
+          "description": "Base URL of your Flagsmith API, e.g. http://localhost:8000/api/v1/"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --platform=node --format=cjs --target=node20 --external:vscode --outfile=dist/extension.cjs --sourcemap",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts",
+    "smoke": "node scripts/smoke.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "~1.90.0",
+    "esbuild": "^0.28.2",
+    "typescript": "~5.9.3"
+  }
+}

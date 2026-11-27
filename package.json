@@ -6,7 +6,10 @@
     "up": "docker compose up -d && node -e \"(async()=>{for(let i=0;i<60;i++){try{const r=await fetch('http://localhost:8000/health/liveness/');if(r.ok){console.log('Flagsmith ready at http://localhost:8000');process.exit(0)}}catch{}await new Promise(r=>setTimeout(r,2000))}console.error('Timed out waiting for Flagsmith');process.exit(1)})()\"",
     "seed": "node scripts/seed.mjs",
     "demo": "npm --prefix apps/demo-store run dev",
-    "build:demo": "npm --prefix apps/demo-store run build"
+    "build:demo": "npm --prefix apps/demo-store run build",
+    "build": "npm --prefix packages/flaglens-vscode run build",
+    "test": "npm --prefix packages/flaglens-vscode test",
+    "typecheck": "npm --prefix packages/flaglens-vscode run typecheck"
   },
   "description": "FlagLens: a VS Code extension for self-hosted Flagsmith"
 }

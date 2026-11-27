@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    // esbuild does the real module bundling, so let tsc treat imports like a bundler.
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    // tsc only type-checks; esbuild bundles and Node runs tests directly from .ts.
+    "noEmit": true,
+    // Lets imports say "./flagsmithClient.ts", which Node's built-in TS support needs.
+    "allowImportingTsExtensions": true,
+    // Forbids TS-only runtime syntax (enums, namespaces) that Node can't strip.
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "types": ["node", "vscode"]
+  },
+  "include": ["src", "test", "scripts"]
+}

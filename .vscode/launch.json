@@ -1,0 +1,18 @@
+{
+  // F5 = build FlagLens and open a new VS Code window with it loaded,
+  // pointed at the demo store so there is real flag usage to look at.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run FlagLens",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/flaglens-vscode",
+        "${workspaceFolder}/apps/demo-store"
+      ],
+      "outFiles": ["${workspaceFolder}/packages/flaglens-vscode/dist/**/*.cjs"],
+      "preLaunchTask": "flaglens: build"
+    }
+  ]
+}

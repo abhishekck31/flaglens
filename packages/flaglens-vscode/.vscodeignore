@@ -1,0 +1,7 @@
+# Only ship the bundled extension, not sources or tests.
+src/**
+test/**
+node_modules/**
+tsconfig.json
+**/*.map
+scripts/**
