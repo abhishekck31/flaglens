@@ -80,6 +80,12 @@
         "command": "flaglens.removeFlag",
         "title": "Remove flag (keep enabled path)",
         "category": "FlagLens"
+      },
+      {
+        "command": "flaglens.compareEnvironments",
+        "title": "Compare environments",
+        "category": "FlagLens",
+        "icon": "$(diff)"
       }
     ],
     "configuration": {
@@ -188,6 +194,11 @@
         {
           "command": "flaglens.scanHealth",
           "when": "view == flaglens.health",
+          "group": "navigation"
+        },
+        {
+          "command": "flaglens.compareEnvironments",
+          "when": "view == flaglens.flags && flaglens.connected",
           "group": "navigation"
         }
       ],

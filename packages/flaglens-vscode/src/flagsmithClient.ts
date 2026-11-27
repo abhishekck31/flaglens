@@ -129,6 +129,24 @@ export class FlagsmithClient {
   }
 
   /**
+   * PATCH /api/v1/features/featurestates/<id>/ with {environment, feature, feature_state_value}.
+   * The value is typed: {"type": "unicode"|"int"|"bool", "<type>_value": ...}. `environment` and
+   * `feature` are required in practice (500 without them), and values read back with the same JS
+   * type (checked on 2.295.2). v1 (non-versioned) environments only.
+   */
+  setFeatureStateValue(
+    environmentId: number,
+    featureId: number,
+    featureStateId: number,
+    value: FlagValue,
+  ): Promise<{ id: number }> {
+    return this.request(`${this.baseUrl}/features/featurestates/${featureStateId}/`, {
+      method: "PATCH",
+      body: { environment: environmentId, feature: featureId, feature_state_value: toTypedValue(value) },
+    });
+  }
+
+  /**
    * PATCH /api/v1/projects/<id>/features/<feature id>/ with {"is_archived": true}.
    * Schema: PatchedUpdateFeature, no required fields (checked on 2.295.2). Archiving applies to
    * every environment; it can be undone in the dashboard.
@@ -160,7 +178,10 @@ export class FlagsmithClient {
   }
 
   /** GET /api/v1/environments/<env api key>/featurestates/<id>/ : the flag's current state. */
-  getFeatureState(environmentApiKey: string, featureStateId: number): Promise<{ id: number; enabled: boolean }> {
+  getFeatureState(
+    environmentApiKey: string,
+    featureStateId: number,
+  ): Promise<{ id: number; enabled: boolean; feature_state_value: FlagValue }> {
     return this.request(`${this.baseUrl}/environments/${environmentApiKey}/featurestates/${featureStateId}/`);
   }
 
@@ -237,4 +258,11 @@ export class FlagsmithClient {
     }
     return (await res.json()) as T;
   }
+}
+
+/** Flagsmith's typed value shape. Integers are "int"; any other number is stored as a string. */
+export function toTypedValue(value: FlagValue): Record<string, unknown> {
+  if (typeof value === "boolean") return { type: "bool", boolean_value: value };
+  if (typeof value === "number" && Number.isInteger(value)) return { type: "int", integer_value: value };
+  return { type: "unicode", string_value: value === null ? null : String(value) };
 }

@@ -7,6 +7,7 @@ import { UnknownFlagDiagnostics, UnknownFlagQuickFixes } from "./unknownFlags.ts
 import { DEFAULT_EXCLUDE_GLOBS } from "./codeReferences.ts";
 import { formatSummary, scanAndPush } from "./pushReferences.ts";
 import { FlagHealthProvider } from "./flagHealthView.ts";
+import { ComparePanel } from "./compareView.ts";
 import { REMOVE_FLAG_KIND, REMOVE_FLAG_LANGUAGES, RemoveFlagActionProvider, removeFlagCommand } from "./removeFlagAction.ts";
 
 /** "FlagLens" panel in the Output view: holds the full push report. */
@@ -245,6 +246,7 @@ export function activate(context: vscode.ExtensionContext): void {
     health,
     vscode.window.createTreeView("flaglens.health", { treeDataProvider: health }),
     vscode.commands.registerCommand("flaglens.scanHealth", () => health.scan()),
+    vscode.commands.registerCommand("flaglens.compareEnvironments", () => ComparePanel.show(store, () => getClient(context), output)),
     vscode.languages.registerCodeActionsProvider(REMOVE_FLAG_LANGUAGES, new RemoveFlagActionProvider(store), {
       providedCodeActionKinds: [REMOVE_FLAG_KIND],
     }),
