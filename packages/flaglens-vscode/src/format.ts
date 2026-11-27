@@ -7,6 +7,23 @@ export function totalCodeReferences(feature: Feature): number {
   return feature.code_references_counts.reduce((sum, repo) => sum + repo.count, 0);
 }
 
+/**
+ * The dashboard's base URL. With the official docker-compose file the dashboard and API
+ * share a host, so by default it's the API URL without `/api/v1`.
+ */
+export function dashboardBaseUrl(apiUrl: string, override: string): string {
+  const base = override.trim() || apiUrl.trim().replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+  return base.replace(/\/+$/, "");
+}
+
+/**
+ * Link that opens a flag in the dashboard. Same format the dashboard builds itself
+ * (frontend/web/components/audit-log/getAuditLogRelatedObjectLink.ts at v2.295.2).
+ */
+export function dashboardFeatureUrl(base: string, projectId: number, environmentApiKey: string, featureId: number) {
+  return `${base}/project/${projectId}/environment/${environmentApiKey}/features?feature=${featureId}`;
+}
+
 /** Matches environment names like "Production", "prod", "prod-eu". Used for the safety prompt. */
 export function isProductionName(environmentName: string): boolean {
   return /prod/i.test(environmentName);

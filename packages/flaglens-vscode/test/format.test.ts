@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { Feature } from "../src/flagsmithClient.ts";
-import { describeFlag, isProductionName, totalCodeReferences } from "../src/format.ts";
+import { dashboardBaseUrl, dashboardFeatureUrl, describeFlag, isProductionName, totalCodeReferences } from "../src/format.ts";
 
 /** A feature with sensible defaults; override only what a test cares about. */
 function feature(overrides: Partial<Feature> = {}): Feature {
@@ -61,5 +61,19 @@ describe("isProductionName", () => {
   it("matches prod-like names case-insensitively", () => {
     for (const name of ["Production", "prod", "PROD-EU", "pre-prod"]) assert.equal(isProductionName(name), true, name);
     for (const name of ["Development", "Staging", "QA"]) assert.equal(isProductionName(name), false, name);
+  });
+});
+
+describe("dashboard links", () => {
+  it("derives the dashboard from the API URL unless overridden", () => {
+    assert.equal(dashboardBaseUrl("http://localhost:8000/api/v1/", ""), "http://localhost:8000");
+    assert.equal(dashboardBaseUrl("http://localhost:8000/api/v1/", "http://flags.test:8080/"), "http://flags.test:8080");
+  });
+
+  it("builds the same feature link the dashboard uses", () => {
+    assert.equal(
+      dashboardFeatureUrl("http://localhost:8000", 1, "envKey", 2),
+      "http://localhost:8000/project/1/environment/envKey/features?feature=2",
+    );
   });
 });

@@ -34,12 +34,17 @@ export function FlagsmithProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    const readFlags = () =>
+    const readFlags = () => {
+      // INTENTIONAL TYPO for the FlagLens demo: "varient" should be "variant".
+      // No flag has this name, so getValue returns null and the line below falls back.
+      // FlagLens underlines it and offers "Did you mean checkout_cta_variant?". Keep it in git.
+      const legacyCta = flagsmith.getValue("checkout_cta_varient");
       setFlags({
         loading: false,
-        ctaLabel: toCtaLabel(flagsmith.getValue("checkout_cta_variant")),
+        ctaLabel: toCtaLabel(legacyCta ?? flagsmith.getValue("checkout_cta_variant")),
         expressCheckoutEnabled: flagsmith.hasFeature("enable_express_checkout"),
       });
+    };
 
     flagsmith
       .init({

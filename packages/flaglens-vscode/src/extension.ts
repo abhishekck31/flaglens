@@ -2,6 +2,8 @@
 
 import * as vscode from "vscode";
 import { FlagCodeLensProvider, type ToggleTarget } from "./flagCodeLens.ts";
+import { FlagHoverProvider } from "./flagHover.ts";
+import { UnknownFlagDiagnostics, UnknownFlagQuickFixes } from "./unknownFlags.ts";
 import { FlagStore } from "./flagStore.ts";
 import { FlagsmithClient, normaliseApiUrl, type Environment, type Feature } from "./flagsmithClient.ts";
 import { FlagTreeProvider, type FlagTreeNode } from "./flagTree.ts";
@@ -151,6 +153,24 @@ async function runToggle(context: vscode.ExtensionContext, views: Views, arg: Fl
   await reloadAll(context, views);
 }
 
+/** Quick fix "Create flag 'x' in Flagsmith": creates it (off everywhere) in the CodeLens project. */
+async function createFlag(context: vscode.ExtensionContext, views: Views, name: string): Promise<void> {
+  const client = await getClient(context);
+  const project = views.store.current?.project;
+  if (!client || !project) {
+    vscode.window.showErrorMessage("FlagLens: connect to Flagsmith first.");
+    return;
+  }
+  try {
+    await client.createFeature(project.id, name);
+    vscode.window.showInformationMessage(`FlagLens: created "${name}" in ${project.name}, off in every environment.`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    vscode.window.showErrorMessage(`FlagLens could not create "${name}". ${message}`);
+  }
+  await reloadAll(context, views); // clears the warning once the flag exists
+}
+
 export function activate(context: vscode.ExtensionContext): void {
   const tree = new FlagTreeProvider(() => getClient(context));
   const treeView = vscode.window.createTreeView("flaglens.flags", { treeDataProvider: tree });
@@ -160,6 +180,14 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     treeView,
     vscode.languages.registerCodeLensProvider({ scheme: "file" }, new FlagCodeLensProvider(store)),
+    vscode.languages.registerHoverProvider({ scheme: "file" }, new FlagHoverProvider(store)),
+    new UnknownFlagDiagnostics(store),
+    vscode.languages.registerCodeActionsProvider(
+      { scheme: "file" },
+      new UnknownFlagQuickFixes(store),
+      UnknownFlagQuickFixes.metadata,
+    ),
+    vscode.commands.registerCommand("flaglens.createFlag", (name: string) => createFlag(context, views, name)),
     vscode.commands.registerCommand("flaglens.connect", () => connect(context, views)),
     vscode.commands.registerCommand("flaglens.disconnect", () => disconnect(context, views)),
     vscode.commands.registerCommand("flaglens.refresh", () => reloadAll(context, views)),

@@ -115,6 +115,17 @@ export class FlagsmithClient {
     return this.getAll<Feature>(`/projects/${projectId}/features/?environment=${environmentId}`);
   }
 
+  /**
+   * POST /api/v1/projects/<id>/features/ with {"name", "default_enabled": false}.
+   * Flagsmith gives the new flag an "off" state in every environment (checked live on 2.295.2).
+   */
+  createFeature(projectId: number, name: string): Promise<{ id: number; name: string }> {
+    return this.request(`${this.baseUrl}/projects/${projectId}/features/`, {
+      method: "POST",
+      body: { name, default_enabled: false },
+    });
+  }
+
   /** GET /api/v1/environments/<env api key>/featurestates/<id>/ : the flag's current state. */
   getFeatureState(environmentApiKey: string, featureStateId: number): Promise<{ id: number; enabled: boolean }> {
     return this.request(`${this.baseUrl}/environments/${environmentApiKey}/featurestates/${featureStateId}/`);
@@ -166,7 +177,7 @@ export class FlagsmithClient {
   }
 
   /** Sends one request. GET by default; pass `method` and a JSON `body` for writes. */
-  private async request<T>(url: string, options: { method?: "GET" | "PATCH"; body?: unknown } = {}): Promise<T> {
+  private async request<T>(url: string, options: { method?: "GET" | "PATCH" | "POST"; body?: unknown } = {}): Promise<T> {
     const headers: Record<string, string> = { Authorization: `Api-Key ${this.apiKey}`, Accept: "application/json" };
     if (options.body !== undefined) headers["Content-Type"] = "application/json";
 
