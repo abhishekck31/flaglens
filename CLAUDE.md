@@ -36,5 +36,11 @@ Hard deadline: Nov 29 2026, 8:00 PM IST. Target submit: 6:00 PM IST.
 - Never guess Flagsmith endpoints. Verify against the running instance's schema (`http://localhost:8000/api/v1/swagger.json`) or the Flagsmith repo source.
 - Management API: Organisation API key, header `Authorization: Api-Key <key>`. SDK endpoints: environment key, header `X-Environment-Key`.
 - Never hardcode keys. The extension stores them in VS Code `SecretStorage`. `flagsmith.env` and `.env.local` files are git-ignored.
+- Never stop, restart or modify the user's running Flagsmith stack (`docker compose` in this folder) or the
+  demo dev server (`npm run demo`, port 3000) without asking first. This includes `docker compose down`,
+  `npm run up`, and `npm run build:demo` (it overwrites the dev server's `.next`).
+- Any test stack (e.g. a fresh-clone test) must use different ports (not 8000/8001/3000) and its own
+  compose project name. The compose file hard-codes `container_name: flagsmith_postgres`, so override that as well
+  or the test stack will clash with the running one.
 - Prod safety: toggling a flag in an environment whose name matches `/prod/i` needs a modal confirmation.
 - After each task: run build + tests, then give a 5-line summary of what changed and how to verify it manually.
