@@ -1,0 +1,12 @@
+{
+  "name": "togglewars-flagsmith-devbar",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "up": "docker compose up -d && node -e \"(async()=>{for(let i=0;i<60;i++){try{const r=await fetch('http://localhost:8000/health/liveness/');if(r.ok){console.log('Flagsmith ready at http://localhost:8000');process.exit(0)}}catch{}await new Promise(r=>setTimeout(r,2000))}console.error('Timed out waiting for Flagsmith');process.exit(1)})()\"",
+    "seed": "node scripts/seed.mjs",
+    "dev": "npm --prefix apps/demo-store run dev",
+    "build": "npm --prefix apps/demo-store run build",
+    "test": "npm --prefix packages/flagsmith-devbar test"
+  }
+}

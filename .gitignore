@@ -1,0 +1,8 @@
+.env
+.env.local
+apps/demo-store/.env.local
+flagsmith.env
+node_modules/
+**/node_modules/
+.next/
+**/.next/
