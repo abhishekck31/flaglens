@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { FlagCodeLensProvider, type ToggleTarget } from "./flagCodeLens.ts";
 import { FlagHoverProvider } from "./flagHover.ts";
 import { UnknownFlagDiagnostics, UnknownFlagQuickFixes } from "./unknownFlags.ts";
-import { DEFAULT_EXCLUDE_DIRS } from "./codeReferences.ts";
+import { DEFAULT_EXCLUDE_GLOBS } from "./codeReferences.ts";
 import { formatSummary, scanAndPush } from "./pushReferences.ts";
 
 /** "FlagLens" panel in the Output view: holds the full push report. */
@@ -199,9 +199,9 @@ async function pushReferences(context: vscode.ExtensionContext, views: Views): P
           projectId: snapshot.project.id,
           flagNames: views.store.flagNames(),
           cwd: folder.uri.fsPath,
-          excludeDirs: vscode.workspace
+          excludeGlobs: vscode.workspace
             .getConfiguration("flaglens")
-            .get<string[]>("scanExcludeDirs", DEFAULT_EXCLUDE_DIRS),
+            .get<string[]>("exclude", DEFAULT_EXCLUDE_GLOBS),
           confirmRisk: (warning) => confirmModal("Push code references anyway?", warning, "Push anyway"),
         }),
     );

@@ -2,7 +2,7 @@
 // Usage: FLAGLENS_API_KEY=<organisation key> npm run push -- [--project <id>] [--allow-unpushed]
 // Optional: FLAGLENS_API_URL (default http://localhost:8000/api/v1/)
 
-import { DEFAULT_EXCLUDE_DIRS } from "../src/codeReferences.ts";
+import { DEFAULT_EXCLUDE_GLOBS } from "../src/codeReferences.ts";
 import { FlagsmithClient } from "../src/flagsmithClient.ts";
 import { formatSummary, scanAndPush } from "../src/pushReferences.ts";
 
@@ -32,7 +32,7 @@ const outcome = await scanAndPush({
   projectId: project.id,
   flagNames: new Set(features.map((f) => f.name)),
   cwd: process.cwd(),
-  excludeDirs: DEFAULT_EXCLUDE_DIRS,
+  excludeGlobs: DEFAULT_EXCLUDE_GLOBS,
   confirmRisk: async (warning) => {
     console.warn(`Warning: ${warning}`);
     if (!allowUnpushed) console.warn("Not pushing. Re-run with --allow-unpushed to push anyway.");

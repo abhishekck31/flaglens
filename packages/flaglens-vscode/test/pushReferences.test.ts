@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { after, describe, it } from "node:test";
-import { DEFAULT_EXCLUDE_DIRS, shouldScanPath, summarize } from "../src/codeReferences.ts";
+import { DEFAULT_EXCLUDE_GLOBS, globToRegExp, shouldScanPath, summarize } from "../src/codeReferences.ts";
 import { FlagsmithClient } from "../src/flagsmithClient.ts";
 import { toGitHubUrl } from "../src/git.ts";
 import { scanAndPush } from "../src/pushReferences.ts";
@@ -21,12 +21,30 @@ describe("toGitHubUrl", () => {
   });
 });
 
+describe("globToRegExp", () => {
+  it("supports **, * and ?", () => {
+    assert.equal(globToRegExp("**/seed*").test("scripts/seed.mjs"), true);
+    assert.equal(globToRegExp("**/seed*").test("seed.ts"), true); // "**/" also matches no folder
+    assert.equal(globToRegExp("**/seed*").test("src/seedling/x.ts"), false); // * stays within one name
+    assert.equal(globToRegExp("stack/**").test("stack/docker/compose.yml"), true);
+    assert.equal(globToRegExp("stack/**").test("apps/stack/x.ts"), false); // anchored at the repo root
+    assert.equal(globToRegExp("src/?.ts").test("src/a.ts"), true);
+    assert.equal(globToRegExp("*.md").test("docs/a.md"), false); // no folders without **
+  });
+});
+
 describe("shouldScanPath", () => {
+  it("excludes seed data, local stack and root scripts by default", () => {
+    for (const p of ["scripts/seed.mjs", "stack/flagsmith/docker-compose.yml", "apps/api/seed_data.ts"]) {
+      assert.equal(shouldScanPath(p, DEFAULT_EXCLUDE_GLOBS), false, p);
+    }
+  });
+
   it("skips excluded directories, Markdown and test files", () => {
     for (const p of ["node_modules/x/index.js", "apps/web/.next/a.js", "dist/extension.cjs", "pkg/test/a.ts", "README.md", "src/a.test.ts", "src/a.spec.js"]) {
-      assert.equal(shouldScanPath(p, DEFAULT_EXCLUDE_DIRS), false, p);
+      assert.equal(shouldScanPath(p, DEFAULT_EXCLUDE_GLOBS), false, p);
     }
-    assert.equal(shouldScanPath("apps/demo-store/src/components/FlagsmithProvider.tsx", DEFAULT_EXCLUDE_DIRS), true);
+    assert.equal(shouldScanPath("apps/demo-store/src/components/FlagsmithProvider.tsx", DEFAULT_EXCLUDE_GLOBS), true);
   });
 });
 
@@ -86,7 +104,7 @@ describe("scanAndPush (real git repo in a temp folder)", () => {
       projectId: 1,
       flagNames: new Set(["new_checkout", "dark_mode"]),
       cwd: path.join(dir, "src"), // a sub-folder: the whole repo is still scanned
-      excludeDirs: DEFAULT_EXCLUDE_DIRS,
+      excludeGlobs: DEFAULT_EXCLUDE_GLOBS,
       confirmRisk: async (w) => (warnings.push(w), true),
     });
 
@@ -101,7 +119,7 @@ describe("scanAndPush (real git repo in a temp folder)", () => {
     const { client, uploads } = recordingClient();
     const outcome = await scanAndPush({
       client, projectId: 1, flagNames: new Set(["new_checkout"]), cwd: dir,
-      excludeDirs: DEFAULT_EXCLUDE_DIRS, confirmRisk: async () => false,
+      excludeGlobs: DEFAULT_EXCLUDE_GLOBS, confirmRisk: async () => false,
     });
     assert.equal(outcome.kind, "cancelled");
     assert.equal(uploads.length, 0);
@@ -111,7 +129,7 @@ describe("scanAndPush (real git repo in a temp folder)", () => {
     const { client, uploads } = recordingClient();
     await scanAndPush({
       client, projectId: 1, flagNames: new Set(["unused_flag"]), cwd: dir,
-      excludeDirs: DEFAULT_EXCLUDE_DIRS, confirmRisk: async () => true,
+      excludeGlobs: DEFAULT_EXCLUDE_GLOBS, confirmRisk: async () => true,
     });
     assert.equal(uploads.length, 1);
     assert.deepEqual(uploads[0]?.code_references, []);

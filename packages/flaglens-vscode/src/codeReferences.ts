@@ -10,20 +10,62 @@ export interface CodeReferenceSubmit {
   line_number: number;
 }
 
-/** Directories skipped even when tracked. Mirrors the `flaglens.scanExcludeDirs` default. */
-export const DEFAULT_EXCLUDE_DIRS = ["node_modules", "dist", "out", ".next", "test", "tests", "__tests__"];
+/**
+ * Files that never count as real flag usage. Mirrors the `flaglens.exclude` default.
+ * Only tracked files are scanned, so .gitignore'd files are already out.
+ */
+export const DEFAULT_EXCLUDE_GLOBS = [
+  // build output and dependencies
+  "**/node_modules/**",
+  "**/dist/**",
+  "**/out/**",
+  "**/.next/**",
+  // tests and docs mention flag names without using them
+  "**/test/**",
+  "**/tests/**",
+  "**/__tests__/**",
+  "**/*.test.*",
+  "**/*.spec.*",
+  "**/*.md",
+  "**/*.mdx",
+  // local stack, tooling and seed data set flags up rather than use them
+  "stack/**",
+  "scripts/**",
+  "**/seed*",
+];
 
 /**
- * Whether a repo-relative path should be scanned. Skips excluded directories anywhere in
- * the path, Markdown (docs mention flag names without using them) and *.test.* / *.spec.* files.
+ * Turns a glob into a regular expression over repo-relative paths ("a/b/c.ts").
+ *   `**` + `/` : any number of folders (including none)
+ *   `**`       : anything, including "/"
+ *   `*`        : anything except "/"
+ *   `?`        : one character except "/"
+ * Everything else matches literally. The whole path must match.
  */
-export function shouldScanPath(filePath: string, excludeDirs: readonly string[]): boolean {
-  const segments = filePath.split("/");
-  const fileName = segments.pop() ?? "";
-  if (segments.some((dir) => excludeDirs.includes(dir))) return false;
-  if (/\.mdx?$/i.test(fileName)) return false;
-  if (/\.(test|spec)\.[^.]+$/i.test(fileName)) return false;
-  return true;
+export function globToRegExp(glob: string): RegExp {
+  let pattern = "";
+  for (let i = 0; i < glob.length; i++) {
+    const char = glob.charAt(i);
+    if (glob.startsWith("**/", i)) {
+      pattern += "(?:.*/)?";
+      i += 2;
+    } else if (glob.startsWith("**", i)) {
+      pattern += ".*";
+      i += 1;
+    } else if (char === "*") {
+      pattern += "[^/]*";
+    } else if (char === "?") {
+      pattern += "[^/]";
+    } else {
+      pattern += char.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+    }
+  }
+  return new RegExp(`^${pattern}$`);
+}
+
+/** Whether a repo-relative path (forward slashes) should be scanned. */
+export function shouldScanPath(filePath: string, excludeGlobs: readonly string[]): boolean {
+  return !excludeGlobs.some((glob) => globToRegExp(glob).test(filePath));
 }
 
 /** Same binary/size heuristics as the official Flagsmith/ci scanner. */

@@ -89,21 +89,28 @@
           "default": "",
           "description": "Flagsmith dashboard URL for links in hover cards. Empty means the API URL without /api/v1 (right for the official docker-compose setup)."
         },
-        "flaglens.scanExcludeDirs": {
+        "flaglens.exclude": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "default": [
-            "node_modules",
-            "dist",
-            "out",
-            ".next",
-            "test",
-            "tests",
-            "__tests__"
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/out/**",
+            "**/.next/**",
+            "**/test/**",
+            "**/tests/**",
+            "**/__tests__/**",
+            "**/*.test.*",
+            "**/*.spec.*",
+            "**/*.md",
+            "**/*.mdx",
+            "stack/**",
+            "scripts/**",
+            "**/seed*"
           ],
-          "description": "Directory names skipped when pushing code references (in addition to .gitignore, Markdown files and *.test.* / *.spec.* files)."
+          "markdownDescription": "Globs (relative to the repository root) of files that do not count as code references when pushing. Only git-tracked files are scanned, so `.gitignore` is always respected. `**` matches any folders, `*` anything within one name."
         }
       }
     },

@@ -18,7 +18,8 @@ export interface PushOptions {
   flagNames: ReadonlySet<string>;
   /** Any folder inside the repository; the WHOLE repository is always scanned. */
   cwd: string;
-  excludeDirs: readonly string[];
+  /** Repo-relative globs of files to skip (see DEFAULT_EXCLUDE_GLOBS). */
+  excludeGlobs: readonly string[];
   /** Asked when permalinks may be wrong; resolve true to upload anyway. */
   confirmRisk: (warning: string) => Promise<boolean>;
 }
@@ -46,7 +47,7 @@ export async function scanAndPush(options: PushOptions): Promise<PushOutcome> {
   // even if the editor only has a sub-folder open; otherwise references elsewhere would vanish.
   const files: Array<{ path: string; text: string }> = [];
   for (const relPath of await listTrackedFiles(repo.root)) {
-    if (!shouldScanPath(relPath, options.excludeDirs)) continue;
+    if (!shouldScanPath(relPath, options.excludeGlobs)) continue;
     let content: Buffer;
     try {
       content = await readFile(path.join(repo.root, relPath));
