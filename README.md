@@ -72,6 +72,8 @@ Flagsmith ships an official scanner, the [`Flagsmith/ci`](https://github.com/Fla
   - Afterwards it shows "N references across M flags", lists flags with 0 references, and writes the full list to the **FlagLens** Output panel.
   - Same thing from a terminal: `FLAGLENS_API_KEY=<key> npm --prefix packages/flaglens-vscode run push` (add `--allow-unpushed` to skip the safety stop).
   - Because it uses a plain "quoted name" match, a flag name quoted in a comment counts as a reference.
+- **Where it shows up in Flagsmith:** the dashboard (checked on self-hosted 2.295.2) shows a code-reference badge next to each flag on the Features list. In the demo project, `enable_express_checkout` shows **1** and `checkout_cta_variant` shows an orange **0**. The 0 is real: the demo store's only use of that flag is the deliberate typo `checkout_cta_varient`, so the scan finds no reference to the real name. Fixing the typo and pushing references again turns it into 1.
+  <!-- Screenshot planned: docs/images/dashboard-code-reference-badges.png (Features list, Development, both badges visible). -->
 
 ## Catch missing flags in CI: `flaglens check`
 

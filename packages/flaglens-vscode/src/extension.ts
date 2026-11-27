@@ -7,7 +7,6 @@ import { UnknownFlagDiagnostics, UnknownFlagQuickFixes } from "./unknownFlags.ts
 import { DEFAULT_EXCLUDE_GLOBS } from "./codeReferences.ts";
 import { formatSummary, scanAndPush } from "./pushReferences.ts";
 import { FlagHealthProvider } from "./flagHealthView.ts";
-import { ComparePanel } from "./compareView.ts";
 import { openDashboard, openDemoFile, startLocalFlagsmith, type StackDeps } from "./localStackCommand.ts";
 import { REMOVE_FLAG_KIND, REMOVE_FLAG_LANGUAGES, RemoveFlagActionProvider, removeFlagCommand } from "./removeFlagAction.ts";
 
@@ -251,7 +250,6 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("flaglens.startLocalFlagsmith", () => startLocalFlagsmith(stackDeps)),
     vscode.commands.registerCommand("flaglens.openDashboard", () => openDashboard(stackDeps)),
     vscode.commands.registerCommand("flaglens.openDemoFile", () => openDemoFile()),
-    vscode.commands.registerCommand("flaglens.compareEnvironments", () => ComparePanel.show(store, () => getClient(context), output)),
     vscode.languages.registerCodeActionsProvider(REMOVE_FLAG_LANGUAGES, new RemoveFlagActionProvider(store), {
       providedCodeActionKinds: [REMOVE_FLAG_KIND],
     }),

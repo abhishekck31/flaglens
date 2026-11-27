@@ -4,7 +4,6 @@
 
 - "FlagLens: Start local Flagsmith" (asks before touching a running stack), "Open dashboard", and a 4-step getting-started walkthrough.
 - Releases also publish to Open VSX when the `OVSX_TOKEN` secret is set.
-- "FlagLens: Compare environments" webview with Promote (row or all differences), re-read before writing, modal confirmation.
 - "Remove flag (keep enabled path)" refactoring for fully rolled-out flags (TS/JS/TSX), with preview, manual-cleanup list and optional archive.
 - Archived flags no longer count as fully rolled out.
 - `flaglens check` CLI (`--json`), GitHub Action and example PR-comment workflow.
