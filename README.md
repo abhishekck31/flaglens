@@ -1,8 +1,23 @@
 # FlagLens
 
+[![CI](https://github.com/abhishekck31/flaglens/actions/workflows/ci.yml/badge.svg)](https://github.com/abhishekck31/flaglens/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/abhishekck31/flaglens)](https://github.com/abhishekck31/flaglens/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A VS Code extension for **self-hosted Flagsmith**: see your feature flags next to the code that uses them, toggle them without leaving the editor, and push code references back into Flagsmith. Works in VS Code, Cursor, Antigravity and other VS Code-based editors.
 
 Built for the Toggle Wars hackathon (Track 03: Build on Open Source Flagsmith). The extension lives in [`packages/flaglens-vscode`](packages/flaglens-vscode).
+
+## Architecture
+
+```mermaid
+flowchart LR
+  IDE["VS Code / Cursor / Antigravity (FlagLens Extension)"] -->|"Org API Key (OS Keychain)"| API["Self-Hosted Flagsmith 2.295.2 (localhost:8000)"]
+  IDE -->|"Scan Git-Tracked Files"| REPO["Your App Codebase (apps/demo-store)"]
+  IDE -->|"Push Code References & Toggle / Edit Value"| API
+  CI["GitHub Action (.github/actions/flaglens-check)"] -->|"Check Missing / Typo Flags on PR"| API
+  APP["Next.js Demo Store (localhost:3000)"] -->|"SDK Key (Evaluate Flags)"| API
+```
 
 ## What FlagLens gives you
 
