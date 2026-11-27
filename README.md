@@ -108,6 +108,64 @@ Because this demo's Flagsmith runs on a laptop, that workflow starts a throwaway
 ```
 
 Note: in this repo the demo store keeps its intentional typo, so the check fails on every PR to `main` by design.
+Live proof in [PR #1](https://github.com/abhishekck31/flaglens/pull/1): [failing check on the typo](https://github.com/abhishekck31/flaglens/actions/runs/46024569377) → [passing check after fixing it](https://github.com/abhishekck31/flaglens/actions/runs/46024901000).
+
+## Examples across SDKs & cleanup
+
+### 1. TypeScript / React / Python SDK detection
+
+FlagLens matches `hasFeature`, `isFeatureEnabled`, `getValue`, `getFeatureValue`, `getFlag`, and `useFlags([...])` out of the box, and any custom function via `flaglens.callPatterns`:
+
+```ts
+// TypeScript / Next.js (apps/demo-store)
+const cta = flagsmith.getValue("checkout_cta_variant");
+const express = flagsmith.hasFeature("enable_express_checkout");
+
+// React SDK
+const flags = useFlags(["checkout_cta_variant", "enable_express_checkout"]);
+```
+
+For Python or Go SDKs, add the method name in `.vscode/settings.json` (shared between VS Code and `flaglens check` in CI):
+
+```json
+{
+  "flaglens.callPatterns": ["hasFeature", "getValue", "useFlags", "is_feature_enabled"]
+}
+```
+
+```python
+# Python SDK — flagged if "new_billing_flow" is missing in Flagsmith
+if flags.is_feature_enabled("new_billing_flow"):
+    render_v2_billing()
+```
+
+### 2. Dead-flag cleanup (`Remove flag (keep enabled path)`)
+
+When a flag is **ON in every environment** (shown under **Flag Health → Fully rolled out**), FlagLens uses the TypeScript compiler API to preview and rewrite the three safe shapes (leaving any non-trivial usage untouched and listing `file:line` for manual review):
+
+```tsx
+// 1) Branching statement: if (hasFeature("x")) { A } else { B } → A
+if (flagsmith.hasFeature("enable_express_checkout")) {
+  showExpressBadge();
+} else {
+  showStandardCheckout();
+}
+// Becomes:
+showExpressBadge();
+
+// 2) Ternary: hasFeature("x") ? A : B → A
+const badge = flagsmith.hasFeature("enable_express_checkout") ? <ExpressBadge /> : null;
+// Becomes:
+const badge = <ExpressBadge />;
+
+// 3) Constant literal inline (when all environments share the same literal)
+const ctaLabel = flagsmith.getValue("checkout_cta_variant");
+renderButton(ctaLabel);
+// Becomes:
+renderButton("Complete Order Now ->");
+```
+
+After applying the diff preview, FlagLens offers to archive the flag in Flagsmith (with confirmation).
 
 ## License
 
