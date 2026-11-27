@@ -16,7 +16,8 @@ Hard deadline: Nov 29 2026, 8:00 PM IST. Target submit: 6:00 PM IST.
   `.github/actions/flaglens-check` wraps `check`, and `.github/workflows/flaglens-check.yml` runs it on PRs against a
   throwaway Flagsmith started on the runner (`scripts/ci-bootstrap.mjs` creates its admin, org and key).
   Releases: bump `version` + CHANGELOG, then push tag `v<version>`
-  (.github/workflows/release.yml attaches the .vsix to a GitHub Release).
+  (.github/workflows/release.yml attaches the .vsix to a GitHub Release, and publishes to Open VSX
+  only if the `OVSX_TOKEN` repo secret is set; namespace `togglewars` must exist there first).
 - `docs/upstream-issue.md`: draft issue for Flagsmith/ci. Not filed.
 - Branch `devbar-prototype`: archived earlier prototype. Do not merge.
 

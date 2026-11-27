@@ -16,6 +16,8 @@ See, toggle and track your [Flagsmith](https://flagsmith.com) feature flags with
 
 ## Getting started
 
+The **Get started with FlagLens** walkthrough (Welcome page → Walkthroughs) covers these steps. In the FlagLens repo, **FlagLens: Start local Flagsmith** runs `docker compose up -d` in a terminal, waits for the health check, then offers to seed demo data or open the dashboard. If Flagsmith is already running it asks first, and it never stops or restarts it.
+
 1. Run self-hosted Flagsmith. The [project README](https://github.com/abhishekck31/flaglens#readme) has a 3-command quickstart.
 2. In the dashboard, create an **Organisation API key**: Organisation Settings → API Keys.
 3. Click the FlagLens icon in the activity bar, then **Connect to Flagsmith**. Accept or edit the API URL and paste the key. The key is stored in your OS keychain (VS Code SecretStorage), never in settings.

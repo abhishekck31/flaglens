@@ -86,6 +86,23 @@
         "title": "Compare environments",
         "category": "FlagLens",
         "icon": "$(diff)"
+      },
+      {
+        "command": "flaglens.startLocalFlagsmith",
+        "title": "Start local Flagsmith",
+        "category": "FlagLens",
+        "icon": "$(play)"
+      },
+      {
+        "command": "flaglens.openDashboard",
+        "title": "Open Flagsmith dashboard",
+        "category": "FlagLens",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "flaglens.openDemoFile",
+        "title": "Open demo file",
+        "category": "FlagLens"
       }
     ],
     "configuration": {
@@ -170,7 +187,7 @@
     "viewsWelcome": [
       {
         "view": "flaglens.flags",
-        "contents": "Connect to your self-hosted Flagsmith to see your flags here.\n[Connect to Flagsmith](command:flaglens.connect)",
+        "contents": "Connect to your self-hosted Flagsmith to see your flags here.\n[Connect to Flagsmith](command:flaglens.connect)\nNo Flagsmith yet? [Start local Flagsmith](command:flaglens.startLocalFlagsmith) or follow the [getting-started walkthrough](command:workbench.action.openWalkthrough?%22togglewars.flaglens%23gettingStarted%22).",
         "when": "!flaglens.connected"
       },
       {
@@ -223,7 +240,60 @@
           "when": "false"
         }
       ]
-    }
+    },
+    "walkthroughs": [
+      {
+        "id": "gettingStarted",
+        "title": "Get started with FlagLens",
+        "description": "Run self-hosted Flagsmith, connect, and see your flags in the editor.",
+        "steps": [
+          {
+            "id": "start",
+            "title": "Start local Flagsmith",
+            "description": "Run the self-hosted stack with Docker and wait until it's healthy.\n[Start local Flagsmith](command:flaglens.startLocalFlagsmith)",
+            "media": {
+              "markdown": "media/walkthrough/start.md"
+            },
+            "completionEvents": [
+              "onCommand:flaglens.startLocalFlagsmith"
+            ]
+          },
+          {
+            "id": "key",
+            "title": "Get an Organisation API key",
+            "description": "Sign up in the dashboard, then Organisation Settings → API Keys → Create API Key.\n[Open dashboard](command:flaglens.openDashboard)",
+            "media": {
+              "markdown": "media/walkthrough/key.md"
+            },
+            "completionEvents": [
+              "onCommand:flaglens.openDashboard"
+            ]
+          },
+          {
+            "id": "connect",
+            "title": "Connect FlagLens",
+            "description": "Paste the key; FlagLens stores it in your OS keychain.\n[Connect](command:flaglens.connect)",
+            "media": {
+              "markdown": "media/walkthrough/connect.md"
+            },
+            "completionEvents": [
+              "onContext:flaglens.connected"
+            ]
+          },
+          {
+            "id": "demo",
+            "title": "Open the demo file",
+            "description": "See CodeLens, hovers and the typo warning on real SDK calls.\n[Open demo file](command:flaglens.openDemoFile)",
+            "media": {
+              "markdown": "media/walkthrough/demo.md"
+            },
+            "completionEvents": [
+              "onCommand:flaglens.openDemoFile"
+            ]
+          }
+        ]
+      }
+    ]
   },
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --platform=node --format=cjs --target=node20 --external:vscode --outfile=dist/extension.cjs --sourcemap",

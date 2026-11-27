@@ -38,3 +38,18 @@ jobs:
           gh release create "$GITHUB_REF_NAME" flaglens-*.vsix
           --title "FlagLens $GITHUB_REF_NAME"
           --notes-file CHANGELOG.md
+      # Open VSX (the registry used by VSCodium, Gitpod, Cursor, Eclipse Theia...). Optional: runs
+      # only when the repository has an OVSX_TOKEN secret. Secrets can't be used in `if:`, so a
+      # first step records whether it's set, and only the publish step ever receives the token.
+      - name: Is Open VSX publishing configured?
+        id: ovsx
+        env:
+          HAS_TOKEN: ${{ secrets.OVSX_TOKEN != '' }}
+        run: |
+          echo "enabled=$HAS_TOKEN" >> "$GITHUB_OUTPUT"
+          if [ "$HAS_TOKEN" != "true" ]; then echo "::notice::OVSX_TOKEN secret not set; skipping Open VSX publish."; fi
+      - name: Publish to Open VSX
+        if: steps.ovsx.outputs.enabled == 'true'
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_TOKEN }} # ovsx reads the token from OVSX_PAT, so it's never on the command line
+        run: npx --yes ovsx@1.4.0 publish flaglens-*.vsix
