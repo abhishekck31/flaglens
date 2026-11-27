@@ -23,6 +23,34 @@ export interface Environment {
   /** The environment's client-side SDK key. Also used in Management API paths. */
   api_key: string;
   project: number;
+  /** v2 versioning changes how flags are edited. FlagLens only toggles v1 environments. */
+  use_v2_feature_versioning: boolean;
+}
+
+export type FlagValue = string | number | boolean | null;
+
+/** A flag's state in one environment (its environment default, not segment/identity overrides). */
+export interface EnvironmentFeatureState {
+  /** Feature-state id; this is what gets PATCHed to toggle the flag. */
+  id: number;
+  enabled: boolean;
+  feature_state_value: FlagValue;
+}
+
+/** How many references to the flag the latest scan of one repository found. */
+export interface CodeReferenceCount {
+  repository_url: string;
+  count: number;
+}
+
+export interface Feature {
+  id: number;
+  name: string;
+  type: "STANDARD" | "MULTIVARIATE";
+  description: string | null;
+  /** Only filled when the list is requested with `?environment=<id>`. */
+  environment_feature_state: EnvironmentFeatureState | null;
+  code_references_counts: CodeReferenceCount[];
 }
 
 /** Thrown for any non-2xx response, so callers can react to e.g. 401 vs 404. */
@@ -77,6 +105,14 @@ export class FlagsmithClient {
   /** GET /api/v1/environments/?project=<id> (paginated) */
   listEnvironments(projectId: number): Promise<Environment[]> {
     return this.getAll<Environment>(`/environments/?project=${projectId}`);
+  }
+
+  /**
+   * GET /api/v1/projects/<id>/features/?environment=<env id> (paginated).
+   * Passing the environment makes Flagsmith include each flag's state in that environment.
+   */
+  listFeatures(projectId: number, environmentId: number): Promise<Feature[]> {
+    return this.getAll<Feature>(`/projects/${projectId}/features/?environment=${environmentId}`);
   }
 
   /**

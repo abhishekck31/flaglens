@@ -2,9 +2,19 @@
 
 import * as vscode from "vscode";
 import { FlagsmithClient, normaliseApiUrl } from "./flagsmithClient.ts";
+import { FlagTreeProvider } from "./flagTree.ts";
 
 /** Name under which the Organisation API key lives in VS Code's SecretStorage (OS keychain). */
 const API_KEY_SECRET = "flaglens.organisationApiKey";
+
+/**
+ * Sets the `flaglens.connected` context key. package.json uses it to choose between
+ * the "Connect" welcome screen and the flag tree.
+ */
+async function updateConnectedContext(context: vscode.ExtensionContext): Promise<void> {
+  const connected = (await context.secrets.get(API_KEY_SECRET)) !== undefined;
+  await vscode.commands.executeCommand("setContext", "flaglens.connected", connected);
+}
 
 function getConfiguredApiUrl(): string {
   return vscode.workspace.getConfiguration("flaglens").get<string>("apiUrl", "http://localhost:8000/api/v1/");
@@ -23,7 +33,7 @@ export async function getClient(context: vscode.ExtensionContext): Promise<Flags
  * "FlagLens: Connect to Flagsmith": asks for the API URL and Organisation API key,
  * proves they work by listing organisations and projects, and only then saves them.
  */
-async function connect(context: vscode.ExtensionContext): Promise<void> {
+async function connect(context: vscode.ExtensionContext, tree: FlagTreeProvider): Promise<void> {
   const apiUrl = await vscode.window.showInputBox({
     title: "FlagLens: Flagsmith API URL",
     prompt: "Your self-hosted Flagsmith API, e.g. http://localhost:8000/api/v1/",
@@ -57,6 +67,8 @@ async function connect(context: vscode.ExtensionContext): Promise<void> {
     await vscode.workspace
       .getConfiguration("flaglens")
       .update("apiUrl", normaliseApiUrl(apiUrl) + "/", vscode.ConfigurationTarget.Global);
+    await updateConnectedContext(context);
+    tree.refresh();
 
     const orgNames = organisations.map((o) => o.name).join(", ") || "none";
     vscode.window.showInformationMessage(
@@ -68,16 +80,28 @@ async function connect(context: vscode.ExtensionContext): Promise<void> {
   }
 }
 
-async function disconnect(context: vscode.ExtensionContext): Promise<void> {
+async function disconnect(context: vscode.ExtensionContext, tree: FlagTreeProvider): Promise<void> {
   await context.secrets.delete(API_KEY_SECRET);
+  await updateConnectedContext(context);
+  tree.refresh();
   vscode.window.showInformationMessage("FlagLens: API key removed from this machine.");
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+  const tree = new FlagTreeProvider(() => getClient(context));
+
   context.subscriptions.push(
-    vscode.commands.registerCommand("flaglens.connect", () => connect(context)),
-    vscode.commands.registerCommand("flaglens.disconnect", () => disconnect(context)),
+    vscode.window.registerTreeDataProvider("flaglens.flags", tree),
+    vscode.commands.registerCommand("flaglens.connect", () => connect(context, tree)),
+    vscode.commands.registerCommand("flaglens.disconnect", () => disconnect(context, tree)),
+    vscode.commands.registerCommand("flaglens.refresh", () => tree.refresh()),
+    // If the API URL setting is edited by hand, reload the tree from the new server.
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration("flaglens.apiUrl")) tree.refresh();
+    }),
   );
+
+  void updateConnectedContext(context);
 }
 
 export function deactivate(): void {

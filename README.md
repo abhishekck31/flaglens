@@ -29,6 +29,14 @@ Prerequisites: Docker Desktop (running) and Node.js 20+.
    ```
    Open http://localhost:3000.
 
+## FlagLens vs the official code-references scanner
+
+Flagsmith ships an official scanner, the [`Flagsmith/ci`](https://github.com/Flagsmith/ci) GitHub Action. FlagLens sends data to the same Flagsmith API, but works differently:
+
+- **Where it runs:** the Action runs in GitHub CI after you push to `main`. FlagLens runs in your editor whenever you ask, before you commit.
+- **What it matches:** the Action only matches calls shaped like `feature…("name")` or `flag…("name")`, so it misses `flagsmith.getValue("name")`. FlagLens matches any quoted string equal to a real flag name from your Flagsmith project.
+- **Which way the data goes:** the Action only uploads, and skips the upload when it finds nothing, so it never clears stale references. FlagLens also reads the data back into the editor and always uploads its full latest scan, which can be empty.
+
 ## License
 
 MIT

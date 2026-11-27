@@ -10,6 +10,19 @@ Hard deadline: Nov 29 2026, 8:00 PM IST. Target submit: 6:00 PM IST.
 - `packages/flaglens-vscode`: the extension (to be added).
 - Branch `devbar-prototype`: archived earlier prototype. Do not merge.
 
+## Verified API facts (Flagsmith 2.295.2, checked 2026-11-27)
+- **Feature versioning:** `use_v2_feature_versioning = false` on both demo environments (Development, Production).
+  FlagLens supports only v1 (non-versioned) environments: toggle = `PATCH /environments/{api_key}/featurestates/{id}/`
+  with `{"enabled": bool}`. Under v2 versioning that endpoint is not how changes are made, so FlagLens must
+  detect `use_v2_feature_versioning: true` and refuse to toggle with a clear message. Keep demo environments on v1.
+- **Flags per environment:** `GET /projects/{id}/features/?environment=<env id>` (paginated). Each feature has
+  `environment_feature_state` (`id`, `enabled`, `feature_state_value`) and `code_references_counts` (per repository).
+- **List shapes:** `/organisations/`, `/environments/`, `/projects/{id}/features/` are paginated; `/projects/` is a plain array.
+- **Code references:** `POST /projects/{id}/code-references/` with `repository_url`, `revision`, `vcs_provider`
+  (only `github` is accepted), `code_references: [{feature_name, file_path, line_number}]`.
+  The latest scan per repository replaces the previous one: a flag missing from it drops to count 0,
+  and an empty list clears all references for that repo.
+
 ## Rules
 - TypeScript `strict`. Keep code simple and comment anything non-obvious: the author must be able to explain every line.
 - Depth over breadth: each feature works end to end before starting the next.

@@ -67,6 +67,31 @@ describe("FlagsmithClient", () => {
     assert.equal(calls[1]?.url, `${BASE}/environments/?page=2&project=1`);
   });
 
+  it("requests features in the context of one environment", async () => {
+    const { fetchFn, calls } = fakeFetch({
+      [`${BASE}/projects/1/features/?environment=2`]: [
+        200,
+        {
+          count: 1,
+          next: null,
+          results: [
+            {
+              id: 5,
+              name: "enable_express_checkout",
+              type: "STANDARD",
+              description: null,
+              environment_feature_state: { id: 4, enabled: false, feature_state_value: null },
+              code_references_counts: [{ repository_url: "https://github.com/a/b", count: 1 }],
+            },
+          ],
+        },
+      ],
+    });
+    const features = await new FlagsmithClient(BASE, "k", fetchFn).listFeatures(1, 2);
+    assert.equal(calls[0]?.url, `${BASE}/projects/1/features/?environment=2`);
+    assert.equal(features[0]?.environment_feature_state?.enabled, false);
+  });
+
   it("throws FlagsmithApiError with a key hint on 401", async () => {
     const { fetchFn } = fakeFetch({ [`${BASE}/organisations/`]: [401, { detail: "Invalid API key" }] });
     await assert.rejects(new FlagsmithClient(BASE, "bad", fetchFn).listOrganisations(), (err: unknown) => {
