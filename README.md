@@ -19,6 +19,20 @@ flowchart LR
   APP["Next.js Demo Store (localhost:3000)"] -->|"SDK Key (Evaluate Flags)"| API
 ```
 
+## How Flagsmith is Used
+
+Flagsmith (`2.295.2`, self-hosted via [docker-compose.yml](docker-compose.yml)) is the live backend for every workflow in FlagLens:
+
+| Feature | How Flagsmith Is Used |
+| :--- | :--- |
+| **Auth & Discovery** | Authenticates with an Organisation API key (stored in VS Code `SecretStorage`) against `/api/v1/organisations/`, `/projects/`, `/environments/`, and `/projects/<id>/features/?environment=<id>`. |
+| **Live Toggles & Value Edits** | Re-reads live state via `/environments/<env_key>/featurestates/<id>/`, refuses `use_v2_feature_versioning: true` environments, requires modal confirmation on production, and writes `enabled` or `feature_state_value` (`/features/featurestates/<id>/`). |
+| **Code References Sync** | Scans git-tracked files and uploads full scans to `POST /projects/<id>/code-references/`, keeping the dashboard's GitHub code-reference badges up to date (clearing stale refs on empty scans). |
+| **Typo Diagnostics & Creation** | Flags SDK calls whose keys do not exist in Flagsmith, suggests closest matches (`Did you mean …?`), and creates missing flags via `POST /projects/<id>/features/` (`default_enabled: false`). |
+| **Flag Lifecycle & Cleanup** | Computes **Flag Health** from live environment states + repo usage, archives **Unused** or cleaned-up flags via `PATCH /projects/<id>/features/<id>/` (`is_archived: true`), and blocks missing keys in PRs via `flaglens check`. |
+
+See [docs/architecture-guide.md](docs/architecture-guide.md) for a module-by-module breakdown.
+
 ## What FlagLens gives you
 
 - **Sidebar & CodeLens:** See every project, environment, flag value, and code-reference count right above your SDK calls (`hasFeature`, `getValue`, `useFlags`, etc.).
@@ -90,7 +104,7 @@ Flagsmith ships an official scanner, the [`Flagsmith/ci`](https://github.com/Fla
 
 - **CI coverage vs. the editor before commit:** use the Action to keep references current for the whole team. Use FlagLens to see flag state and reference counts while you write the code.
 - **Reading references:** FlagLens shows each flag's reference count (from the same API the Action writes to) in the sidebar and in hover cards.
-- **Pushing references:** **FlagLens: Push code references to Flagsmith** (the ☁ button in the Flags panel) scans every tracked file in the repository and uploads the result to the same endpoint the Action uses. It matches any quoted string equal to a real flag name, so it also catches `getValue("…")` and `useFlags([…])`. It always uploads the full scan, even an empty one, so references to deleted code clear. Those two gaps in the Action are written up in [`docs/upstream-issue.md`](docs/upstream-issue.md).
+- **Pushing references:** **FlagLens: Push code references to Flagsmith** (the ☁ button in the Flags panel) scans every tracked file in the repository and uploads the result to the same endpoint the Action uses. It matches any quoted string equal to a real flag name, so it also catches `getValue("…")` and `useFlags([…])`. It always uploads the full scan, even an empty one, so references to deleted code clear. Those two gaps in the Action are filed upstream at [Flagsmith/ci#12](https://github.com/Flagsmith/ci/issues/12) (see [`docs/upstream-issue.md`](docs/upstream-issue.md)).
   - It respects `.gitignore` (only tracked files are read) and skips files matching the `flaglens.exclude` globs. By default that is build output (`node_modules`, `dist`, `out`, `.next`), tests, Markdown, and setup code that is not real app usage (`stack/**`, `scripts/**`, `**/seed*`).
   - Before uploading, it warns if your commit isn't pushed yet (dashboard permalinks would 404) or you have uncommitted changes, and lets you continue anyway.
   - Afterwards it shows "N references across M flags", lists flags with 0 references, and writes the full list to the **FlagLens** Output panel.

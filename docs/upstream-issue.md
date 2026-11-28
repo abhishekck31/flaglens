@@ -1,4 +1,4 @@
-# Draft issue for Flagsmith/ci (not filed)
+# Upstream issue for Flagsmith/ci — Filed at [#12](https://github.com/Flagsmith/ci/issues/12)
 
 **Title:** Code references: `getValue("…")` / `useFlags([…])` calls are not detected, and an empty scan never clears old references
 
