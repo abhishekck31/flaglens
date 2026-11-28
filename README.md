@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/abhishekck31/flaglens/actions/workflows/ci.yml/badge.svg)](https://github.com/abhishekck31/flaglens/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/abhishekck31/flaglens)](https://github.com/abhishekck31/flaglens/releases/latest)
+[![Open VSX](https://img.shields.io/open-vsx/v/Togglewars/flaglens)](https://open-vsx.org/extension/Togglewars/flaglens)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A VS Code extension for **self-hosted Flagsmith**: see your feature flags next to the code that uses them, toggle them without leaving the editor, and push code references back into Flagsmith. Works in VS Code, Cursor, Antigravity and other VS Code-based editors.
@@ -71,7 +72,7 @@ Prerequisites: Docker Desktop (running), Node.js 22+, git, and VS Code 1.90+ wit
    The seed creates a `Toggle Wars` project with `Development` and `Production` environments and two flags
    (`checkout_cta_variant`, `enable_express_checkout`), and writes `apps/demo-store/.env.local`.
 
-4. **Install the extension** from the [latest release](https://github.com/abhishekck31/flaglens/releases/latest):
+4. **Install the extension** from [Open VSX](https://open-vsx.org/extension/Togglewars/flaglens) (Cursor, Antigravity, VSCodium) or the [latest GitHub release](https://github.com/abhishekck31/flaglens/releases/latest):
    ```bash
    curl -LO https://github.com/abhishekck31/flaglens/releases/latest/download/flaglens-0.3.1.vsix
    code --install-extension flaglens-0.3.1.vsix
