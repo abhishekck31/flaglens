@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 (2026-11-28)
+
+- Publish to Open VSX (`togglewars.flaglens`) for Cursor, Antigravity, VSCodium, and VS Code-based editors.
+- Documentation updates: "How Flagsmith is Used", architecture diagram, multi-SDK examples, and link to [Flagsmith/ci#12](https://github.com/Flagsmith/ci/issues/12).
+
 ## 0.3.0 (2026-11-27)
 
 - **Edit flag value** from the Flags sidebar (`PATCH /api/v1/features/featurestates/<id>/`), with live state re-reads, v2-versioning protection, and modal confirmation for production environments.

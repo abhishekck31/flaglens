@@ -73,8 +73,8 @@ Prerequisites: Docker Desktop (running), Node.js 22+, git, and VS Code 1.90+ wit
 
 4. **Install the extension** from the [latest release](https://github.com/abhishekck31/flaglens/releases/latest):
    ```bash
-   curl -LO https://github.com/abhishekck31/flaglens/releases/latest/download/flaglens-0.3.0.vsix
-   code --install-extension flaglens-0.3.0.vsix
+   curl -LO https://github.com/abhishekck31/flaglens/releases/latest/download/flaglens-0.3.1.vsix
+   code --install-extension flaglens-0.3.1.vsix
    ```
    On Windows PowerShell, type `curl.exe` instead of `curl`. Or download the file in your browser and use
    VS Code: Extensions view → `…` menu → Install from VSIX…
